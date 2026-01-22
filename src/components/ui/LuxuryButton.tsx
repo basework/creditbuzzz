@@ -22,12 +22,12 @@ export const LuxuryButton = forwardRef<HTMLButtonElement, LuxuryButtonProps>(
           "flex items-center justify-center gap-2 overflow-hidden",
           "active:scale-[0.98]",
           isPrimary && "text-white",
-          variant === "ghost" && "bg-transparent border border-border/50 text-foreground hover:border-teal hover:text-teal",
+          variant === "ghost" && "bg-transparent border border-border/50 text-foreground hover:border-rose hover:text-rose",
           className
         )}
         style={isPrimary ? {
-          background: "linear-gradient(135deg, #7B3FE4, #D84EFF, #F5B44C)",
-          boxShadow: "0 0 30px rgba(123, 63, 228, 0.4), 0 0 60px rgba(216, 78, 255, 0.2)",
+          background: "linear-gradient(135deg, hsl(338, 78%, 58%), hsl(338, 80%, 48%))",
+          boxShadow: "0 0 25px hsla(338, 78%, 58%, 0.35)",
         } : undefined}
         {...props}
       >
@@ -36,7 +36,7 @@ export const LuxuryButton = forwardRef<HTMLButtonElement, LuxuryButtonProps>(
           <div 
             className="absolute inset-0 rounded-xl"
             style={{
-              background: "linear-gradient(135deg, #7B3FE4, #D84EFF, #F5B44C)",
+              background: "linear-gradient(135deg, hsl(338, 78%, 58%), hsl(338, 80%, 48%))",
               animation: "breathingGlow 2.5s ease-in-out infinite",
             }}
           />
@@ -47,7 +47,7 @@ export const LuxuryButton = forwardRef<HTMLButtonElement, LuxuryButtonProps>(
           <div 
             className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-500"
             style={{
-              background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)",
+              background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent)",
               transform: "translateX(-100%)",
               animation: "buttonShimmer 3s ease-in-out infinite",
             }}
@@ -69,10 +69,10 @@ export const LuxuryButton = forwardRef<HTMLButtonElement, LuxuryButtonProps>(
         <style>{`
           @keyframes breathingGlow {
             0%, 100% { 
-              box-shadow: 0 0 30px rgba(123, 63, 228, 0.4), 0 0 60px rgba(216, 78, 255, 0.2);
+              box-shadow: 0 0 25px hsla(338, 78%, 58%, 0.35);
             }
             50% { 
-              box-shadow: 0 0 50px rgba(123, 63, 228, 0.6), 0 0 80px rgba(216, 78, 255, 0.4), 0 0 100px rgba(245, 180, 76, 0.2);
+              box-shadow: 0 0 40px hsla(338, 78%, 58%, 0.5), 0 0 60px hsla(345, 55%, 75%, 0.25);
             }
           }
           @keyframes buttonShimmer {
