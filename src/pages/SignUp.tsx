@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ZenfiLogo } from "@/components/ui/ZenfiLogo";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { GlowInput } from "@/components/ui/GlowInput";
-import { AuroraButton } from "@/components/ui/AuroraButton";
-import { FloatingParticles } from "@/components/ui/FloatingParticles";
+import { LuxuryGlassCard } from "@/components/ui/LuxuryGlassCard";
+import { LuxuryInput } from "@/components/ui/LuxuryInput";
+import { LuxuryButton } from "@/components/ui/LuxuryButton";
+import { LuxuryBackground } from "@/components/ui/LuxuryBackground";
+import { User, Mail, Lock, Gift } from "lucide-react";
 
 export const SignUp = () => {
   const navigate = useNavigate();
@@ -21,7 +22,6 @@ export const SignUp = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
     const newErrors: Record<string, string> = {};
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
@@ -37,7 +37,6 @@ export const SignUp = () => {
 
     setLoading(true);
     
-    // Simulate signup
     setTimeout(() => {
       setLoading(false);
       navigate("/dashboard");
@@ -45,85 +44,133 @@ export const SignUp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
-      <FloatingParticles />
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8 overflow-hidden">
+      <LuxuryBackground intensity="high" />
       
-      <div className="w-full max-w-[400px] relative z-10 animate-fade-in-up">
+      <div 
+        className="w-full max-w-[400px] relative z-10"
+        style={{
+          animation: "pageEnter 0.8s ease-out forwards",
+        }}
+      >
+        {/* Logo Section */}
         <div className="text-center mb-8">
-          <ZenfiLogo size="lg" animated className="justify-center mb-4" />
+          <ZenfiLogo size="lg" animated />
         </div>
 
-        <GlassCard>
-          <h1 className="text-2xl font-display font-semibold text-center mb-2">
-            Create Your Account
-          </h1>
-          <p className="text-muted-foreground text-center mb-8">
-            Join ZENFI and start your financial journey
-          </p>
+        {/* Glass Card */}
+        <LuxuryGlassCard>
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h1 
+              className="text-2xl font-display font-semibold mb-2"
+              style={{
+                textShadow: "0 0 30px rgba(255, 255, 255, 0.1)",
+              }}
+            >
+              Create Your Account
+            </h1>
+            <p className="text-muted-foreground/70 text-sm">
+              Join ZENFI and start your financial journey
+            </p>
+          </div>
 
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <GlowInput
+            <LuxuryInput
               type="text"
               placeholder="Full name"
+              icon={<User className="w-5 h-5" />}
               value={formData.fullName}
               onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
               required
             />
             
-            <GlowInput
+            <LuxuryInput
               type="email"
               placeholder="Email address"
+              icon={<Mail className="w-5 h-5" />}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
             />
             
-            <GlowInput
+            <LuxuryInput
               type="password"
               placeholder="Password"
+              icon={<Lock className="w-5 h-5" />}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               error={errors.password}
               required
             />
             
-            <GlowInput
+            <LuxuryInput
               type="password"
               placeholder="Confirm password"
+              icon={<Lock className="w-5 h-5" />}
               value={formData.confirmPassword}
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
               error={errors.confirmPassword}
               required
             />
             
-            <GlowInput
+            <LuxuryInput
               type="text"
               placeholder="Referral code (optional)"
+              icon={<Gift className="w-5 h-5" />}
               value={formData.referralCode}
               onChange={(e) => setFormData({ ...formData, referralCode: e.target.value })}
             />
 
-            <div className="pt-2">
-              <AuroraButton type="submit" loading={loading}>
+            {/* Submit Button */}
+            <div className="pt-3">
+              <LuxuryButton type="submit" loading={loading}>
                 Create Account
-              </AuroraButton>
+              </LuxuryButton>
             </div>
           </form>
 
+          {/* Switch to Login */}
           <div className="mt-6 text-center">
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground/60 text-sm">
               Already have an account?{" "}
-              <Link to="/login" className="text-teal hover:underline font-medium">
+              <Link 
+                to="/login" 
+                className="font-semibold transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(46,242,226,0.5)]"
+                style={{ color: "#2EF2E2" }}
+              >
                 Log in
               </Link>
             </p>
           </div>
-        </GlassCard>
+        </LuxuryGlassCard>
 
-        <p className="text-center text-muted-foreground text-xs mt-6">
-          By signing up, you agree to our Terms of Service and Privacy Policy
+        {/* Footer */}
+        <p className="text-center text-muted-foreground/40 text-xs mt-6">
+          By signing up, you agree to our{" "}
+          <span className="text-muted-foreground/60 hover:text-teal transition-colors cursor-pointer">
+            Terms of Service
+          </span>{" "}
+          and{" "}
+          <span className="text-muted-foreground/60 hover:text-teal transition-colors cursor-pointer">
+            Privacy Policy
+          </span>
         </p>
       </div>
+
+      <style>{`
+        @keyframes pageEnter {
+          from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 };
