@@ -1,44 +1,95 @@
+import { useState, useEffect } from "react";
 import { ZenfiLogo } from "@/components/ui/ZenfiLogo";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { AuroraButton } from "@/components/ui/AuroraButton";
+import { VirtualBankCard } from "@/components/ui/VirtualBankCard";
 import { FloatingParticles } from "@/components/ui/FloatingParticles";
+import { OnboardingModal } from "@/components/ui/OnboardingModal";
 import { 
   ArrowUpRight, 
   ArrowDownLeft, 
-  CreditCard, 
-  TrendingUp,
   Bell,
   Settings,
+  Send,
   Wallet,
-  PiggyBank,
-  Send
+  TrendingUp,
+  TrendingDown,
+  CheckCircle,
+  Clock,
+  XCircle
 } from "lucide-react";
 
 const transactions = [
-  { id: 1, name: "Received from Alex", amount: "+$1,250.00", type: "in", time: "Today, 2:34 PM" },
-  { id: 2, name: "Subscription", amount: "-$14.99", type: "out", time: "Today, 10:00 AM" },
-  { id: 3, name: "Earnings Payout", amount: "+$3,420.50", type: "in", time: "Yesterday" },
-  { id: 4, name: "Transfer to Bank", amount: "-$500.00", type: "out", time: "Yesterday" },
+  { id: 1, name: "Deposit Received", amount: "+₦125,000", type: "credit", time: "Today, 2:34 PM", status: "completed" },
+  { id: 2, name: "Service Fee", amount: "-₦1,499", type: "debit", time: "Today, 10:00 AM", status: "completed" },
+  { id: 3, name: "Earnings Payout", amount: "+₦342,050", type: "credit", time: "Yesterday", status: "completed" },
+  { id: 4, name: "Withdrawal to Bank", amount: "-₦50,000", type: "debit", time: "Yesterday", status: "pending" },
 ];
 
 const quickActions = [
-  { icon: Send, label: "Send", color: "text-violet" },
-  { icon: ArrowDownLeft, label: "Receive", color: "text-magenta" },
-  { icon: CreditCard, label: "Card", color: "text-gold" },
-  { icon: PiggyBank, label: "Savings", color: "text-teal" },
+  { icon: Send, label: "Transfer", color: "bg-rose/20 text-rose" },
+  { icon: Wallet, label: "Withdraw", color: "bg-teal/20 text-teal" },
 ];
 
 export const Dashboard = () => {
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    // Check if onboarding was completed
+    const onboardingComplete = localStorage.getItem("zenfi_onboarding_complete");
+    if (!onboardingComplete) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem("zenfi_onboarding_complete", "true");
+    setShowOnboarding(false);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "completed":
+        return (
+          <span className="status-badge success flex items-center gap-1">
+            <CheckCircle className="w-3 h-3" />
+            Completed
+          </span>
+        );
+      case "pending":
+        return (
+          <span className="status-badge pending flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            Pending
+          </span>
+        );
+      case "failed":
+        return (
+          <span className="status-badge failed flex items-center gap-1">
+            <XCircle className="w-3 h-3" />
+            Failed
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background pb-8">
       <FloatingParticles />
+      
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <OnboardingModal onComplete={handleOnboardingComplete} />
+      )}
       
       {/* Header */}
       <header className="relative z-10 px-4 py-4 flex items-center justify-between">
         <ZenfiLogo size="sm" />
         <div className="flex items-center gap-3">
-          <button className="p-2 rounded-xl bg-secondary hover:bg-muted transition-colors">
+          <button className="p-2 rounded-xl bg-secondary hover:bg-muted transition-colors relative">
             <Bell className="w-5 h-5 text-muted-foreground" />
+            <span className="absolute top-1 right-1 w-2 h-2 bg-rose rounded-full" />
           </button>
           <button className="p-2 rounded-xl bg-secondary hover:bg-muted transition-colors">
             <Settings className="w-5 h-5 text-muted-foreground" />
@@ -47,89 +98,58 @@ export const Dashboard = () => {
       </header>
 
       <main className="relative z-10 px-4 space-y-6">
-        {/* Balance Card */}
-        <GlassCard className="text-center py-8">
-          <p className="text-muted-foreground text-sm mb-2">Total Balance</p>
-          <h1 className="text-5xl font-display font-bold gradient-text mb-4">
-            $24,680.42
-          </h1>
-          <div className="flex items-center justify-center gap-2 text-teal">
-            <TrendingUp className="w-4 h-4" />
-            <span className="text-sm font-medium">+12.5% this month</span>
-          </div>
-        </GlassCard>
+        {/* Virtual Bank Card */}
+        <div className="animate-fade-in-up">
+          <VirtualBankCard balance={180000} cardNumber="4829" />
+        </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-4 gap-3">
+        {/* Action Buttons */}
+        <div 
+          className="grid grid-cols-2 gap-4 animate-fade-in-up"
+          style={{ animationDelay: "0.1s" }}
+        >
           {quickActions.map((action) => (
             <button
               key={action.label}
-              className="glass-card p-4 flex flex-col items-center gap-2 hover:scale-105 transition-transform"
+              className="glass-card p-4 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              style={{
+                boxShadow: "0 0 20px hsla(338, 78%, 58%, 0.1)",
+              }}
             >
-              <div className={`${action.color}`}>
-                <action.icon className="w-6 h-6" />
+              <div className={`p-2 rounded-xl ${action.color}`}>
+                <action.icon className="w-5 h-5" />
               </div>
-              <span className="text-xs text-muted-foreground">{action.label}</span>
+              <span className="font-semibold text-foreground">{action.label}</span>
             </button>
           ))}
         </div>
 
-        {/* Wallet Cards */}
-        <div className="space-y-3">
-          <h2 className="text-lg font-display font-semibold flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-violet" />
-            My Wallets
-          </h2>
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4">
-            <div 
-              className="min-w-[260px] h-[150px] rounded-2xl p-5 flex flex-col justify-between"
-              style={{
-                background: "linear-gradient(135deg, hsl(262, 76%, 57%), hsl(289, 100%, 65%))",
-              }}
-            >
-              <div className="flex justify-between items-start">
-                <span className="text-white/80 text-sm">Primary Wallet</span>
-                <span className="text-white font-bold text-sm">ZENFI</span>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Available</p>
-                <p className="text-white text-2xl font-bold">$18,450.00</p>
-              </div>
-            </div>
-            
-            <div 
-              className="min-w-[260px] h-[150px] rounded-2xl p-5 flex flex-col justify-between"
-              style={{
-                background: "linear-gradient(135deg, hsl(37, 89%, 53%), hsl(37, 89%, 43%))",
-              }}
-            >
-              <div className="flex justify-between items-start">
-                <span className="text-white/80 text-sm">Savings</span>
-                <span className="text-white font-bold text-sm">GOLD</span>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Available</p>
-                <p className="text-white text-2xl font-bold">$6,230.42</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Transactions */}
-        <div className="space-y-3">
+        {/* Transaction History */}
+        <div 
+          className="space-y-3 animate-fade-in-up"
+          style={{ animationDelay: "0.2s" }}
+        >
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-display font-semibold">Recent Activity</h2>
-            <button className="text-sm text-teal hover:underline">View all</button>
+            <h2 className="text-lg font-display font-semibold flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-rose" />
+              Transaction History
+            </h2>
+            <button className="text-sm text-rose hover:underline">View all</button>
           </div>
+          
           <GlassCard className="p-0 overflow-hidden">
             <div className="divide-y divide-border">
-              {transactions.map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between p-4">
+              {transactions.map((tx, index) => (
+                <div 
+                  key={tx.id} 
+                  className="flex items-center justify-between p-4 animate-slide-in"
+                  style={{ animationDelay: `${0.3 + index * 0.1}s` }}
+                >
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      tx.type === "in" ? "bg-teal/20" : "bg-muted"
+                      tx.type === "credit" ? "bg-teal/15" : "bg-muted"
                     }`}>
-                      {tx.type === "in" ? (
+                      {tx.type === "credit" ? (
                         <ArrowDownLeft className="w-5 h-5 text-teal" />
                       ) : (
                         <ArrowUpRight className="w-5 h-5 text-muted-foreground" />
@@ -137,11 +157,14 @@ export const Dashboard = () => {
                     </div>
                     <div>
                       <p className="font-medium text-sm">{tx.name}</p>
-                      <p className="text-xs text-muted-foreground">{tx.time}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-xs text-muted-foreground">{tx.time}</p>
+                        {getStatusBadge(tx.status)}
+                      </div>
                     </div>
                   </div>
                   <p className={`font-semibold ${
-                    tx.type === "in" ? "text-teal" : "text-foreground"
+                    tx.type === "credit" ? "text-teal" : "text-foreground"
                   }`}>
                     {tx.amount}
                   </p>
@@ -151,15 +174,18 @@ export const Dashboard = () => {
           </GlassCard>
         </div>
 
-        {/* CTA */}
-        <GlassCard className="text-center">
-          <h3 className="font-display font-semibold mb-2">Start Earning Today</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Invite friends and earn up to 5% commission
+        {/* CTA Card */}
+        <GlassCard 
+          className="text-center animate-fade-in-up"
+          style={{ animationDelay: "0.4s" }}
+        >
+          <h3 className="font-display font-semibold mb-2">Powered by Smart Infrastructure</h3>
+          <p className="text-sm text-muted-foreground mb-1">
+            Secured & encrypted transactions
           </p>
-          <AuroraButton>
-            Share Referral Link
-          </AuroraButton>
+          <p className="text-xs text-muted-foreground/60">
+            Built for speed, security, and reliability
+          </p>
         </GlassCard>
       </main>
     </div>
