@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ZenfiLogo } from "@/components/ui/ZenfiLogo";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { GlowInput } from "@/components/ui/GlowInput";
-import { AuroraButton } from "@/components/ui/AuroraButton";
-import { FloatingParticles } from "@/components/ui/FloatingParticles";
+import { LuxuryGlassCard } from "@/components/ui/LuxuryGlassCard";
+import { LuxuryInput } from "@/components/ui/LuxuryInput";
+import { LuxuryButton } from "@/components/ui/LuxuryButton";
+import { LuxuryBackground } from "@/components/ui/LuxuryBackground";
+import { Mail, Lock } from "lucide-react";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -18,7 +19,6 @@ export const Login = () => {
     e.preventDefault();
     setLoading(true);
     
-    // Simulate login
     setTimeout(() => {
       setLoading(false);
       navigate("/dashboard");
@@ -26,67 +26,116 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
-      <FloatingParticles />
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8 overflow-hidden">
+      <LuxuryBackground intensity="high" />
       
-      <div className="w-full max-w-[400px] relative z-10 animate-fade-in-up">
-        <div className="text-center mb-8">
-          <ZenfiLogo size="lg" animated className="justify-center mb-4" />
+      <div 
+        className="w-full max-w-[400px] relative z-10"
+        style={{
+          animation: "pageEnter 0.8s ease-out forwards",
+        }}
+      >
+        {/* Logo Section */}
+        <div className="text-center mb-10">
+          <ZenfiLogo size="lg" animated />
         </div>
 
-        <GlassCard>
-          <h1 className="text-2xl font-display font-semibold text-center mb-2">
-            Welcome Back
-          </h1>
-          <p className="text-muted-foreground text-center mb-8">
-            Sign in to access your ZENFI wallet
-          </p>
+        {/* Glass Card */}
+        <LuxuryGlassCard>
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 
+              className="text-2xl font-display font-semibold mb-2"
+              style={{
+                textShadow: "0 0 30px rgba(255, 255, 255, 0.1)",
+              }}
+            >
+              Welcome Back
+            </h1>
+            <p className="text-muted-foreground/70 text-sm">
+              Sign in to access your ZENFI wallet
+            </p>
+          </div>
 
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            <GlowInput
+            <LuxuryInput
               type="email"
               placeholder="Email address"
+              icon={<Mail className="w-5 h-5" />}
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
             />
             
-            <GlowInput
+            <LuxuryInput
               type="password"
               placeholder="Password"
+              icon={<Lock className="w-5 h-5" />}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
             />
 
+            {/* Forgot Password */}
             <div className="flex justify-end">
               <Link 
                 to="/forgot-password" 
-                className="text-sm text-teal hover:underline transition-colors"
+                className="text-sm font-medium transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(46,242,226,0.5)]"
+                style={{ color: "#2EF2E2" }}
               >
                 Forgot Password?
               </Link>
             </div>
 
-            <AuroraButton type="submit" loading={loading}>
-              Sign In
-            </AuroraButton>
+            {/* Submit Button */}
+            <div className="pt-2">
+              <LuxuryButton type="submit" loading={loading}>
+                Sign In
+              </LuxuryButton>
+            </div>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-muted-foreground text-sm">
+          {/* Switch to Sign Up */}
+          <div className="mt-8 text-center">
+            <p className="text-muted-foreground/60 text-sm">
               Don't have an account?{" "}
-              <Link to="/signup" className="text-teal hover:underline font-medium">
+              <Link 
+                to="/signup" 
+                className="font-semibold transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(46,242,226,0.5)]"
+                style={{ color: "#2EF2E2" }}
+              >
                 Sign up
               </Link>
             </p>
           </div>
-        </GlassCard>
+        </LuxuryGlassCard>
 
-        <p className="text-center text-muted-foreground text-xs mt-6">
-          By signing in, you agree to our Terms of Service and Privacy Policy
+        {/* Footer */}
+        <p className="text-center text-muted-foreground/40 text-xs mt-8">
+          By signing in, you agree to our{" "}
+          <span className="text-muted-foreground/60 hover:text-teal transition-colors cursor-pointer">
+            Terms of Service
+          </span>{" "}
+          and{" "}
+          <span className="text-muted-foreground/60 hover:text-teal transition-colors cursor-pointer">
+            Privacy Policy
+          </span>
         </p>
       </div>
+
+      <style>{`
+        @keyframes pageEnter {
+          from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+      `}</style>
     </div>
   );
 };
