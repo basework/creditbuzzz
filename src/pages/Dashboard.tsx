@@ -134,7 +134,7 @@ export const Dashboard = () => {
       <main className="relative z-10 px-4 space-y-4">
         {/* Compact Virtual Bank Card */}
         <div className="animate-fade-in-up">
-          <VirtualBankCard balance={balance} cardNumber="4829" className="min-h-[145px]" />
+          <VirtualBankCard balance={balance} cardNumber="4829" className="min-h-[130px]" />
         </div>
 
         {/* Primary Action Buttons - More Compact */}
@@ -237,18 +237,18 @@ export const Dashboard = () => {
               <button
                 key={action.label}
                 onClick={() => handleActionClick(action.route)}
-                className="glass-card aspect-square flex flex-col items-center justify-center gap-2 hover:scale-[1.05] active:scale-[0.95] transition-all duration-200 group animate-fade-in-up"
+                className="glass-card aspect-square p-2 flex flex-col items-center justify-center gap-1.5 hover:scale-[1.05] active:scale-[0.95] transition-all duration-200 group animate-fade-in-up"
                 style={{ animationDelay: `${0.25 + index * 0.03}s` }}
               >
                 <div 
-                  className={`p-2.5 rounded-xl bg-gradient-to-br ${action.color} opacity-80 group-hover:opacity-100 transition-all duration-200 group-hover:scale-110`}
+                  className={`p-2 rounded-xl bg-gradient-to-br ${action.color} opacity-80 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}
                   style={{
-                    boxShadow: "0 4px 12px hsla(262, 76%, 57%, 0.2)",
+                    boxShadow: "0 4px 14px hsla(262, 76%, 57%, 0.25)",
                   }}
                 >
-                  <action.icon className="w-[18px] h-[18px] text-white" />
+                  <action.icon className="w-5 h-5 text-white transition-transform duration-300 group-hover:scale-110" />
                 </div>
-                <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight px-0.5">
+                <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">
                   {action.label}
                 </span>
               </button>
