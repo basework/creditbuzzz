@@ -1,44 +1,58 @@
-import { useState, useEffect } from "react";
-import { Eye, EyeOff, CreditCard, Wifi } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Eye, EyeOff, CreditCard, Wifi, Play, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface VirtualBankCardProps {
   balance: number;
   cardNumber?: string;
   className?: string;
+  userId?: string;
+  referralCount?: number;
 }
 
 export const VirtualBankCard = ({ 
   balance = 180000, 
   cardNumber = "4829",
-  className 
+  className,
+  userId = "ZF-7829401",
+  referralCount = 3
 }: VirtualBankCardProps) => {
   const [isHidden, setIsHidden] = useState(false);
-  const [displayBalance, setDisplayBalance] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(true);
+  const [displayBalance, setDisplayBalance] = useState(balance);
+  const [isGlowing, setIsGlowing] = useState(false);
+  const prevBalanceRef = useRef(balance);
 
-  // Count-up animation
+  // Instant balance update with smooth count-up animation
   useEffect(() => {
-    if (isAnimating && !isHidden) {
-      const duration = 1500;
-      const steps = 60;
-      const increment = balance / steps;
-      let current = 0;
+    if (balance !== prevBalanceRef.current) {
+      const diff = balance - prevBalanceRef.current;
+      const startValue = prevBalanceRef.current;
+      const duration = 400; // Fast count-up
+      const steps = 20;
+      let step = 0;
+      
+      // Trigger glow effect
+      setIsGlowing(true);
+      setTimeout(() => setIsGlowing(false), 600);
       
       const timer = setInterval(() => {
-        current += increment;
-        if (current >= balance) {
+        step++;
+        const progress = step / steps;
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentValue = startValue + (diff * easeOut);
+        
+        if (step >= steps) {
           setDisplayBalance(balance);
           clearInterval(timer);
-          setIsAnimating(false);
         } else {
-          setDisplayBalance(Math.floor(current));
+          setDisplayBalance(Math.floor(currentValue));
         }
       }, duration / steps);
 
+      prevBalanceRef.current = balance;
       return () => clearInterval(timer);
     }
-  }, [balance, isAnimating, isHidden]);
+  }, [balance]);
 
   const formatBalance = (value: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -52,7 +66,7 @@ export const VirtualBankCard = ({
   return (
     <div 
       className={cn(
-        "bank-card p-5 animate-card-float",
+        "bank-card p-4 animate-card-float hover:scale-[1.01] active:scale-[0.99] transition-transform duration-200",
         className
       )}
     >
@@ -67,74 +81,91 @@ export const VirtualBankCard = ({
         }}
       />
 
-      {/* Top Row - Chip & Wifi */}
-      <div className="relative flex justify-between items-start mb-6">
+      {/* Top Row - Chip, Wifi & Watch Video */}
+      <div className="relative flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
           {/* Chip */}
           <div 
-            className="w-10 h-8 rounded-md flex items-center justify-center"
+            className="w-9 h-7 rounded-md flex items-center justify-center"
             style={{
               background: "linear-gradient(145deg, hsl(37, 70%, 60%), hsl(37, 60%, 45%))",
               boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3), 0 2px 4px rgba(0,0,0,0.2)",
             }}
           >
-            <div className="w-6 h-5 rounded-sm border border-amber-600/40 grid grid-cols-3 gap-px p-0.5">
+            <div className="w-5 h-4 rounded-sm border border-amber-600/40 grid grid-cols-3 gap-px p-0.5">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="bg-amber-700/50 rounded-[1px]" />
               ))}
             </div>
           </div>
-          <Wifi className="w-5 h-5 text-gold rotate-90" />
+          <Wifi className="w-4 h-4 text-gold rotate-90" />
         </div>
         
-        <span className="text-sm font-bold tracking-wider gradient-text">
-          ZENFI
-        </span>
+        <div className="flex items-center gap-2">
+          {/* Watch Video Button */}
+          <button 
+            className="flex items-center gap-1 px-2 py-1 rounded-lg bg-violet/20 hover:bg-violet/30 active:scale-95 transition-all duration-200"
+            onClick={() => {}}
+          >
+            <Play className="w-3 h-3 text-violet fill-violet" />
+            <span className="text-[9px] font-medium text-violet">Watch</span>
+          </button>
+          <span className="text-xs font-bold tracking-wider gradient-text">
+            ZENFI
+          </span>
+        </div>
       </div>
 
-      {/* Card Number */}
-      <div className="relative mb-6">
-        <p className="text-muted-foreground/60 text-xs tracking-widest font-medium">
-          •••• •••• •••• {cardNumber}
+      {/* Balance Section - Shifted Up */}
+      <div className="relative mb-2">
+        <p className="text-muted-foreground/70 text-[10px] uppercase tracking-wider mb-0.5">
+          Available Balance
         </p>
+        <div className="flex items-center gap-2">
+          <h2 
+            className={cn(
+              "text-2xl font-bold text-foreground transition-all duration-300",
+              isGlowing && "scale-[1.02]"
+            )}
+            style={{
+              textShadow: isGlowing 
+                ? "0 0 40px hsla(174, 88%, 56%, 0.6), 0 0 20px hsla(262, 76%, 57%, 0.4)" 
+                : "0 0 30px hsla(262, 76%, 57%, 0.3)",
+            }}
+          >
+            {isHidden ? "••••••••" : formatBalance(displayBalance)}
+          </h2>
+          <button
+            onClick={() => setIsHidden(!isHidden)}
+            className="p-1.5 rounded-lg bg-secondary/50 hover:bg-secondary active:scale-90 transition-all duration-200"
+          >
+            {isHidden ? (
+              <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
+            ) : (
+              <Eye className="w-3.5 h-3.5 text-teal" />
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Balance Section */}
-      <div className="relative">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-muted-foreground/70 text-xs uppercase tracking-wider mb-1">
-              Available Balance
-            </p>
-            <div className="flex items-center gap-3">
-              <h2 
-                className="text-3xl font-bold text-foreground animate-count-up"
-                style={{
-                  textShadow: "0 0 30px hsla(262, 76%, 57%, 0.3)",
-                }}
-              >
-                {isHidden ? "••••••••" : formatBalance(displayBalance)}
-              </h2>
-              <button
-                onClick={() => {
-                  setIsHidden(!isHidden);
-                  if (isHidden) {
-                    setIsAnimating(true);
-                    setDisplayBalance(0);
-                  }
-                }}
-                className="p-2 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
-              >
-                {isHidden ? (
-                  <EyeOff className="w-4 h-4 text-muted-foreground" />
-                ) : (
-                  <Eye className="w-4 h-4 text-teal" />
-                )}
-              </button>
-            </div>
-          </div>
-          
-          <CreditCard className="w-8 h-8 text-violet/50" />
+      {/* Card Number & User ID */}
+      <div className="relative flex items-center justify-between mb-2">
+        <div>
+          <p className="text-muted-foreground/50 text-[10px] tracking-widest font-medium">
+            •••• •••• •••• {cardNumber}
+          </p>
+          <p className="text-muted-foreground/40 text-[9px] mt-0.5">
+            ID: {userId}
+          </p>
+        </div>
+        <CreditCard className="w-6 h-6 text-violet/40" />
+      </div>
+
+      {/* Referral Count */}
+      <div className="relative flex items-center gap-1.5">
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal/10">
+          <Users className="w-3 h-3 text-teal" />
+          <span className="text-[9px] font-medium text-teal">{referralCount} Referrals</span>
         </div>
       </div>
 
@@ -145,15 +176,25 @@ export const VirtualBankCard = ({
         <div 
           className="absolute -inset-full animate-shimmer"
           style={{
-            background: "linear-gradient(90deg, transparent, hsla(262, 76%, 57%, 0.08), transparent)",
+            background: "linear-gradient(90deg, transparent, hsla(262, 76%, 57%, 0.1), transparent)",
           }}
         />
       </div>
 
+      {/* Glow overlay on balance update */}
+      {isGlowing && (
+        <div 
+          className="absolute inset-0 rounded-2xl pointer-events-none animate-pulse"
+          style={{
+            background: "radial-gradient(circle at 30% 40%, hsla(174, 88%, 56%, 0.15) 0%, transparent 60%)",
+          }}
+        />
+      )}
+
       {/* Security Text */}
-      <div className="absolute bottom-3 right-6">
-        <p className="text-[10px] text-muted-foreground/40 tracking-wide">
-          Secured & encrypted
+      <div className="absolute bottom-2 right-4">
+        <p className="text-[8px] text-muted-foreground/40 tracking-wide">
+          🔒 Secured
         </p>
       </div>
     </div>
