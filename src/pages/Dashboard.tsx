@@ -5,6 +5,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { VirtualBankCard } from "@/components/ui/VirtualBankCard";
 import { FloatingParticles } from "@/components/ui/FloatingParticles";
 import { OnboardingModal } from "@/components/ui/OnboardingModal";
+import { WarningBanner } from "@/components/ui/WarningBanner";
 import { useClaimTimer } from "@/hooks/useClaimTimer";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { 
@@ -85,19 +86,22 @@ export const Dashboard = () => {
     
     setIsClaiming(true);
     
+    // INSTANT update - no delay
+    const newBalance = balance + 10000;
+    setBalance(newBalance);
+    localStorage.setItem("zenfi_balance", newBalance.toString());
+    addTransaction("claim", 10000);
+    startCooldown();
+    
+    // Brief visual feedback then reset
     setTimeout(() => {
-      const newBalance = balance + 10000;
-      setBalance(newBalance);
-      localStorage.setItem("zenfi_balance", newBalance.toString());
-      addTransaction("claim", 10000);
-      startCooldown();
       setIsClaiming(false);
-      
-      toast({
-        title: "₦10,000 Successfully Claimed!",
-        description: "Your balance has been updated.",
-      });
-    }, 1000);
+    }, 300);
+    
+    toast({
+      title: "₦10,000 Successfully Claimed!",
+      description: "Your balance has been updated.",
+    });
   };
 
   const handleActionClick = (route?: string) => {
@@ -113,6 +117,9 @@ export const Dashboard = () => {
       {showOnboarding && (
         <OnboardingModal onComplete={handleOnboardingComplete} />
       )}
+      
+      {/* Official ZenFi Warning Banner */}
+      <WarningBanner />
       
       {/* Compact Header */}
       <header className="relative z-10 px-4 py-3 flex items-center justify-between">
@@ -232,25 +239,21 @@ export const Dashboard = () => {
             <span className="text-[10px] text-muted-foreground">Fast & reliable</span>
           </div>
           
-          <div className="grid grid-cols-5 gap-3">
+          <div className="grid grid-cols-5 gap-2">
             {actionButtons.map((action, index) => (
               <div
                 key={action.label}
-                className="flex flex-col items-center gap-1.5 animate-fade-in-up"
+                className="flex flex-col items-center gap-1 animate-fade-in-up"
                 style={{ animationDelay: `${0.25 + index * 0.03}s` }}
               >
                 <button
                   onClick={() => handleActionClick(action.route)}
-                  className="glass-card aspect-square w-full p-3 flex items-center justify-center hover:scale-[1.05] active:scale-[0.95] transition-all duration-200 group"
+                  className={`aspect-square w-full rounded-xl flex items-center justify-center hover:scale-[1.08] active:scale-[0.92] transition-all duration-200 group bg-gradient-to-br ${action.color}`}
+                  style={{
+                    boxShadow: "0 4px 14px hsla(262, 76%, 57%, 0.3)",
+                  }}
                 >
-                  <div 
-                    className={`p-2.5 rounded-xl bg-gradient-to-br ${action.color} opacity-80 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}
-                    style={{
-                      boxShadow: "0 4px 14px hsla(262, 76%, 57%, 0.25)",
-                    }}
-                  >
-                    <action.icon className="w-5 h-5 text-white transition-transform duration-300 group-hover:scale-110" />
-                  </div>
+                  <action.icon className="w-6 h-6 text-white transition-transform duration-300 group-hover:scale-110" />
                 </button>
                 <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">
                   {action.label}
