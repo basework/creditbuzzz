@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   ArrowLeft,
   Bell,
@@ -20,11 +21,13 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
-  Check
+  Check,
+  Crown
 } from "lucide-react";
 
 export const Settings = () => {
   const navigate = useNavigate();
+  const { isAdmin, signOut } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -124,8 +127,9 @@ export const Settings = () => {
     setShowPasswordForm(false);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem("zenfi_onboarding_complete");
+    await signOut();
     toast({
       title: "Logged Out",
       description: "You have been logged out successfully",
@@ -153,6 +157,24 @@ export const Settings = () => {
       </header>
 
       <main className="relative z-10 px-4 space-y-4">
+        {/* Admin Panel Link (only for admins) */}
+        {isAdmin && (
+          <button
+            onClick={() => navigate("/admin")}
+            className="w-full animate-fade-in-up"
+          >
+            <GlassCard className="flex items-center gap-3 hover:bg-violet/10 transition-colors border border-violet/30">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-violet to-magenta">
+                <Crown className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left flex-1">
+                <p className="font-semibold text-violet">Admin Panel</p>
+                <p className="text-xs text-muted-foreground">Manage users & payments</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-violet" />
+            </GlassCard>
+          </button>
+        )}
         {/* Notifications */}
         <GlassCard className="animate-fade-in-up">
           <div className="flex items-center justify-between">

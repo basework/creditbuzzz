@@ -9,8 +9,11 @@ import { WarningBanner } from "@/components/ui/WarningBanner";
 import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 import { ProfilePanel } from "@/components/ui/ProfilePanel";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
+import { BannedOverlay } from "@/components/ui/BannedOverlay";
+import { NotificationBanner } from "@/components/ui/NotificationBanner";
 import { useClaimTimer } from "@/hooks/useClaimTimer";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
+import { useAuth } from "@/hooks/useAuth";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { 
@@ -43,9 +46,10 @@ const actionButtons = [
 
 export const Dashboard = () => {
   const navigate = useNavigate();
+  const { profile, isBanned, isLoading: authLoading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProfilePanel, setShowProfilePanel] = useState(false);
-  const [balance, setBalance] = useState(180000);
+  const [balance, setBalance] = useState(0);
   const [isClaiming, setIsClaiming] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
   const { canClaim, remainingTime, startCooldown } = useClaimTimer();
@@ -54,6 +58,13 @@ export const Dashboard = () => {
   
   // Track route for persistence
   useRouteHistory();
+
+  // Sync balance from profile
+  useEffect(() => {
+    if (profile?.balance !== undefined) {
+      setBalance(Number(profile.balance));
+    }
+  }, [profile?.balance]);
 
   // Update carousel slide indicator
   useEffect(() => {
@@ -125,6 +136,11 @@ export const Dashboard = () => {
     }
   };
 
+  // Show banned overlay if user is banned
+  if (isBanned) {
+    return <BannedOverlay reason={profile?.ban_reason} />;
+  }
+
   return (
     <div className="min-h-screen bg-background pb-6">
       <FloatingParticles />
@@ -137,6 +153,9 @@ export const Dashboard = () => {
       
       {/* Official ZenFi Warning Banner */}
       <WarningBanner />
+      
+      {/* Notification Banner */}
+      <NotificationBanner />
       
       {/* Compact Header */}
       <header className="relative z-10 px-4 py-3 flex items-center justify-between">
