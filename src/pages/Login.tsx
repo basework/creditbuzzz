@@ -6,10 +6,13 @@ import { LuxuryInput } from "@/components/ui/LuxuryInput";
 import { LuxuryButton } from "@/components/ui/LuxuryButton";
 import { LuxuryBackground } from "@/components/ui/LuxuryBackground";
 import { WarningBanner } from "@/components/ui/WarningBanner";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 import { Mail, Lock } from "lucide-react";
 
 export const Login = () => {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -20,10 +23,24 @@ export const Login = () => {
     e.preventDefault();
     setLoading(true);
     
-    setTimeout(() => {
+    const { error } = await signIn(formData.email, formData.password);
+    
+    if (error) {
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive",
+      });
       setLoading(false);
-      navigate("/dashboard");
-    }, 1500);
+      return;
+    }
+    
+    toast({
+      title: "Welcome Back!",
+      description: "Login successful",
+    });
+    navigate("/dashboard");
+    setLoading(false);
   };
 
   return (

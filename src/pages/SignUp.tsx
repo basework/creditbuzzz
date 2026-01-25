@@ -6,10 +6,13 @@ import { LuxuryInput } from "@/components/ui/LuxuryInput";
 import { LuxuryButton } from "@/components/ui/LuxuryButton";
 import { LuxuryBackground } from "@/components/ui/LuxuryBackground";
 import { WarningBanner } from "@/components/ui/WarningBanner";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 import { User, Mail, Lock, Gift } from "lucide-react";
 
 export const SignUp = () => {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -38,13 +41,32 @@ export const SignUp = () => {
 
     setLoading(true);
     
+    const { error } = await signUp(
+      formData.email,
+      formData.password,
+      formData.fullName,
+      formData.referralCode || undefined
+    );
+
+    if (error) {
+      toast({
+        title: "Sign Up Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+    
     // Clear onboarding flag so it shows for new signups
     localStorage.removeItem("zenfi_onboarding_complete");
     
-    setTimeout(() => {
-      setLoading(false);
-      navigate("/dashboard");
-    }, 1500);
+    toast({
+      title: "Account Created!",
+      description: "Welcome to ZenFi",
+    });
+    navigate("/dashboard");
+    setLoading(false);
   };
 
   return (
