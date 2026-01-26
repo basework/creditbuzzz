@@ -27,6 +27,8 @@ import { useAuth } from "@/hooks/useAuth";
 
 type Step = "form" | "processing" | "notice" | "transfer" | "confirming" | "pending" | "approved" | "rejected";
 
+// NOTE: "confirming" step is deprecated - we go directly to "pending" after payment submission
+
 const AMOUNT = 5700;
 const ZFC_AMOUNT = 180000; // ZFC amount user will receive
 const BANK_NAME = "Moniepoint MFB";
@@ -106,13 +108,6 @@ export const BuyZFC = () => {
         }
       }, 900);
       return () => clearInterval(interval);
-    }
-  }, [step]);
-
-  // Confirming step
-  useEffect(() => {
-    if (step === "confirming") {
-      setTimeout(() => setStep("pending"), 2000);
     }
   }, [step]);
 
