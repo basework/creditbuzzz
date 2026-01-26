@@ -174,17 +174,26 @@ export const BuyZFC = () => {
   };
 
   const handlePaymentComplete = async () => {
-    if (!receiptUploaded || !receiptFile || !user) {
-      toast({ title: "Error", description: "Please upload a receipt and ensure you're logged in", variant: "destructive" });
+    if (!receiptUploaded || !receiptFile) {
+      toast({ title: "Error", description: "Please upload a receipt first", variant: "destructive" });
       return;
     }
     
     setIsSubmitting(true);
     
     try {
+      // Get current user directly from Supabase to avoid auth state sync issues
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !currentUser) {
+        toast({ title: "Session expired", description: "Please log in again", variant: "destructive" });
+        navigate("/login");
+        return;
+      }
+      
       // 1. Upload receipt to storage
       const fileExt = receiptFile.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('receipts')
@@ -206,7 +215,7 @@ export const BuyZFC = () => {
       const { data: paymentData, error: paymentError } = await supabase
         .from('payments')
         .insert({
-          user_id: user.id,
+          user_id: currentUser.id,
           amount: AMOUNT,
           zfc_amount: ZFC_AMOUNT,
           account_name: formData.fullName || profile?.full_name || "Unknown",
@@ -224,7 +233,8 @@ export const BuyZFC = () => {
       // Store payment ID for real-time subscription
       setCurrentPaymentId(paymentData.id);
       
-      setStep("confirming");
+      // Move to pending immediately
+      setStep("pending");
     } catch (error) {
       console.error("Payment submission error:", error);
       toast({ 
