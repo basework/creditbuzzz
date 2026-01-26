@@ -82,12 +82,6 @@ export const Dashboard = () => {
     if (!onboardingComplete) {
       setShowOnboarding(true);
     }
-    
-    // Load saved balance
-    const savedBalance = localStorage.getItem("zenfi_balance");
-    if (savedBalance) {
-      setBalance(parseInt(savedBalance, 10));
-    }
   }, []);
 
   const addTransaction = (type: "claim" | "withdraw", amount: number) => {
