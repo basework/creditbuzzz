@@ -211,25 +211,6 @@ export const AccountDetails = ({ userId, paymentId, onUploadComplete }: AccountD
             </div>
           </div>
 
-          {/* Amount */}
-          <div className="p-4 rounded-xl bg-teal/10 border border-teal/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs text-muted-foreground block mb-1">Amount to Transfer</span>
-                <span className="font-bold text-lg text-teal">{formatCurrency(AMOUNT)}</span>
-              </div>
-              <button
-                onClick={() => handleCopy(AMOUNT.toString(), "Amount")}
-                className="p-2.5 rounded-xl bg-teal/20 hover:bg-teal/30 transition-all active:scale-95"
-              >
-                {copiedField === "Amount" ? (
-                  <Check className="w-4 h-4 text-teal" />
-                ) : (
-                  <Copy className="w-4 h-4 text-teal" />
-                )}
-              </button>
-            </div>
-          </div>
         </div>
       </section>
 
