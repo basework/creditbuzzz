@@ -11,13 +11,13 @@ import { ProfileAvatar } from "@/components/ui/ProfileAvatar";
 import { ProfilePanel } from "@/components/ui/ProfilePanel";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
 import { BannedOverlay } from "@/components/ui/BannedOverlay";
+import { NotificationPanel } from "@/components/ui/NotificationPanel";
 import { useClaimTimer } from "@/hooks/useClaimTimer";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { useAuth } from "@/hooks/useAuth";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import {
-  Bell,
   Settings,
   Wallet,
   Gift,
@@ -174,9 +174,7 @@ export const Dashboard = () => {
       <header className="relative z-10 px-4 py-3 flex items-center justify-between">
         <ZenfiLogo size="sm" />
         <div className="flex items-center gap-2">
-          <button className="p-2 rounded-xl bg-secondary hover:bg-muted transition-colors relative group">
-            <Bell className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </button>
+          <NotificationPanel />
           <ProfileAvatar onClick={() => setShowProfilePanel(true)} size="sm" />
           <button 
             onClick={() => navigate("/settings")}
