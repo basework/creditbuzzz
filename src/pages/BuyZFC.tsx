@@ -217,16 +217,22 @@ export const BuyZFC = () => {
           receipt_url: receiptUrl,
           status: 'pending'
         })
-        .select('id')
-        .single();
+        .select('id');
       
       if (paymentError) {
         console.error("Payment error:", paymentError);
         throw new Error("Failed to create payment record");
       }
       
+      // Handle array response from insert
+      const paymentId = paymentData?.[0]?.id;
+      
+      if (!paymentId) {
+        throw new Error("Payment created but ID not returned");
+      }
+      
       // Store payment ID for real-time subscription
-      setCurrentPaymentId(paymentData.id);
+      setCurrentPaymentId(paymentId);
       
       // Move to pending immediately
       setStep("pending");
