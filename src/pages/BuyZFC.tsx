@@ -168,7 +168,11 @@ export const BuyZFC = () => {
     }
   };
 
-  const handlePaymentComplete = async () => {
+  const handlePaymentComplete = async (event?: React.MouseEvent) => {
+    // Prevent any default behavior
+    event?.preventDefault();
+    event?.stopPropagation();
+    
     if (!receiptUploaded || !receiptFile) {
       toast({ title: "Error", description: "Please upload a receipt first", variant: "destructive" });
       return;
@@ -187,6 +191,7 @@ export const BuyZFC = () => {
       
       if (userError || !currentUser) {
         toast({ title: "Session expired", description: "Please log in again", variant: "destructive" });
+        setIsSubmitting(false);
         navigate("/login");
         return;
       }
@@ -214,8 +219,8 @@ export const BuyZFC = () => {
       
       const receiptUrl = urlData.publicUrl;
       
-      // 3. Create payment record
-      const { data: paymentData, error: paymentError } = await supabase
+      // 3. Create payment record - NO .select() to avoid abort issues
+      const { error: paymentError } = await supabase
         .from('payments')
         .insert({
           user_id: currentUser.id,
@@ -224,23 +229,12 @@ export const BuyZFC = () => {
           account_name: formData.fullName || profile?.full_name || "Unknown",
           receipt_url: receiptUrl,
           status: 'pending'
-        })
-        .select('id');
+        });
       
       if (paymentError) {
         console.error("Payment error:", paymentError);
         throw new Error(paymentError.message || "Failed to create payment record");
       }
-      
-      // Handle array response from insert
-      const paymentId = paymentData?.[0]?.id;
-      
-      if (!paymentId) {
-        throw new Error("Payment created but ID not returned");
-      }
-      
-      // Store payment ID for real-time subscription
-      setCurrentPaymentId(paymentId);
       
       // SUCCESS - Move to pending screen immediately
       setStep("pending");
@@ -253,7 +247,7 @@ export const BuyZFC = () => {
       console.error("Payment submission error:", error);
       toast({ 
         title: "Submission Failed", 
-        description: error instanceof Error ? error.message : "signal is aborted without reason", 
+        description: error instanceof Error ? error.message : "Please try again", 
         variant: "destructive" 
       });
     } finally {
@@ -679,7 +673,7 @@ export const BuyZFC = () => {
             {/* CTA */}
             <button
               type="button"
-              onClick={handlePaymentComplete}
+              onClick={(e) => handlePaymentComplete(e)}
               disabled={!receiptUploaded || isSubmitting}
               className={`w-full h-14 rounded-2xl font-bold text-base transition-all flex items-center justify-center gap-2 ${
                 receiptUploaded && !isSubmitting
@@ -690,10 +684,10 @@ export const BuyZFC = () => {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Processing...</span>
+                  <span>Submitting...</span>
                 </>
               ) : (
-                "Confirm Payment"
+                "I Have Made Payment"
               )}
             </button>
           </div>
