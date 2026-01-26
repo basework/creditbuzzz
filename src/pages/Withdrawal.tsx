@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Building2, User, Hash, Wallet, Lock, Shield, CheckCircle, AlertCircle } from "lucide-react";
+import { ArrowLeft, Building2, User, Hash, Wallet, Lock, Shield, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { FloatingParticles } from "@/components/ui/FloatingParticles";
 import { ZenfiLogo } from "@/components/ui/ZenfiLogo";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+
+const VALID_WITHDRAWAL_CODE = "XFC641400";
+const TRANSACTIONS_KEY = "zenfi_transactions";
 
 const nigerianBanks = [
   "Access Bank", "Citibank Nigeria", "Ecobank Nigeria", "Fidelity Bank",
@@ -26,6 +29,7 @@ const nigerianBanks = [
 export const Withdrawal = () => {
   const navigate = useNavigate();
   const [availableBalance, setAvailableBalance] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -44,6 +48,8 @@ export const Withdrawal = () => {
         return;
       }
 
+      setUserId(user.id);
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("balance")
@@ -51,7 +57,7 @@ export const Withdrawal = () => {
         .single();
 
       if (profile) {
-        setAvailableBalance(profile.balance);
+        setAvailableBalance(Number(profile.balance));
       }
       setIsLoading(false);
     };
@@ -66,14 +72,14 @@ export const Withdrawal = () => {
         { event: "UPDATE", schema: "public", table: "profiles" },
         (payload) => {
           if (payload.new && typeof payload.new.balance === "number") {
-            setAvailableBalance(payload.new.balance);
+            setAvailableBalance(Number(payload.new.balance));
           }
         }
       )
       .subscribe();
 
     return () => {
-      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, [navigate]);
 
@@ -86,9 +92,25 @@ export const Withdrawal = () => {
     }).format(value);
   };
 
+  const addTransaction = (type: "claim" | "withdraw", amount: number, status: "success" | "pending" | "failed" = "pending") => {
+    const transaction = {
+      id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      type,
+      amount,
+      date: new Date().toISOString(),
+      status,
+    };
+
+    const existing = localStorage.getItem(TRANSACTIONS_KEY);
+    const transactions = existing ? JSON.parse(existing) : [];
+    transactions.unshift(transaction);
+    localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(transactions));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Validate all fields
     if (!formData.accountNumber || !formData.accountName || !formData.bank || !formData.amount || !formData.zfcCode) {
       toast({
         title: "Missing Information",
@@ -98,26 +120,100 @@ export const Withdrawal = () => {
       return;
     }
 
+    // Validate withdrawal code
+    if (formData.zfcCode !== VALID_WITHDRAWAL_CODE) {
+      toast({
+        title: "Invalid Withdrawal Code",
+        description: "The activation code you entered is incorrect. Please check and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const amount = parseInt(formData.amount, 10);
+    
+    // Validate amount
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid withdrawal amount.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate balance
     if (amount > availableBalance) {
       toast({
         title: "Insufficient Balance",
-        description: "You cannot withdraw more than your available balance.",
+        description: `You cannot withdraw more than your available balance of ${formatBalance(availableBalance)}.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!userId) {
+      toast({
+        title: "Authentication Error",
+        description: "Please log in again.",
         variant: "destructive",
       });
       return;
     }
 
     setIsSubmitting(true);
-    
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      // 1. Deduct balance from user's profile
+      const newBalance = availableBalance - amount;
+      const { error: balanceError } = await supabase
+        .from("profiles")
+        .update({ balance: newBalance })
+        .eq("user_id", userId);
+
+      if (balanceError) throw balanceError;
+
+      // 2. Create withdrawal record
+      const { error: withdrawalError } = await supabase
+        .from("withdrawals")
+        .insert({
+          user_id: userId,
+          amount: amount,
+          account_number: formData.accountNumber,
+          account_name: formData.accountName,
+          bank_name: formData.bank,
+          status: "processing",
+        });
+
+      if (withdrawalError) throw withdrawalError;
+
+      // 3. Update local balance immediately
+      setAvailableBalance(newBalance);
+
+      // 4. Add to transaction history
+      addTransaction("withdraw", amount, "pending");
+
+      // 5. Show success notification
       toast({
-        title: "Withdrawal Initiated",
-        description: "Your request is being processed securely.",
+        title: "🔔 Withdrawal Initiated",
+        description: `Your withdrawal of ${formatBalance(amount)} has been deducted from your dashboard balance.`,
       });
-      navigate("/dashboard");
-    }, 2000);
+
+      // 6. Navigate to dashboard
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
+
+    } catch (error: any) {
+      console.error("Withdrawal error:", error);
+      toast({
+        title: "Withdrawal Failed",
+        description: error.message || "An error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isFormValid = formData.accountNumber && formData.accountName && formData.bank && formData.amount && formData.zfcCode;
@@ -125,10 +221,10 @@ export const Withdrawal = () => {
   return (
     <div className="min-h-screen bg-background">
       <FloatingParticles />
-      
+
       {/* Header */}
       <header className="relative z-10 px-4 py-4 flex items-center gap-4">
-        <button 
+        <button
           onClick={() => navigate("/dashboard")}
           className="p-2.5 rounded-xl bg-secondary/80 hover:bg-muted transition-all duration-200 hover:scale-105 active:scale-95"
         >
@@ -143,9 +239,9 @@ export const Withdrawal = () => {
 
       <main className="relative z-10 px-4 pb-8">
         <form onSubmit={handleSubmit} className="space-y-4">
-          
+
           {/* Balance Display Card */}
-          <div 
+          <div
             className="p-5 rounded-2xl animate-fade-in-up"
             style={{
               background: "linear-gradient(135deg, hsla(174, 88%, 56%, 0.12), hsla(262, 76%, 57%, 0.08))",
@@ -158,7 +254,7 @@ export const Withdrawal = () => {
                 <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Available Balance</p>
                 <p className="text-2xl font-display font-bold text-foreground">{formatBalance(availableBalance)}</p>
               </div>
-              <div 
+              <div
                 className="p-3 rounded-xl"
                 style={{ background: "hsla(174, 88%, 56%, 0.15)" }}
               >
@@ -168,9 +264,9 @@ export const Withdrawal = () => {
           </div>
 
           {/* Bank Details Section */}
-          <div 
+          <div
             className="p-4 rounded-2xl space-y-4 animate-fade-in-up"
-            style={{ 
+            style={{
               animationDelay: "0.05s",
               background: "hsla(240, 7%, 8%, 0.7)",
               border: "1px solid hsla(0, 0%, 100%, 0.06)",
@@ -185,7 +281,7 @@ export const Withdrawal = () => {
             {/* Bank Selector */}
             <div className="space-y-1.5">
               <label className="text-[11px] uppercase tracking-wider text-muted-foreground/80 font-medium">Select Bank</label>
-              <Select 
+              <Select
                 value={formData.bank}
                 onValueChange={(value) => setFormData({ ...formData, bank: value })}
               >
@@ -237,9 +333,9 @@ export const Withdrawal = () => {
           </div>
 
           {/* Transaction Details */}
-          <div 
+          <div
             className="p-4 rounded-2xl space-y-4 animate-fade-in-up"
-            style={{ 
+            style={{
               animationDelay: "0.1s",
               background: "hsla(240, 7%, 8%, 0.7)",
               border: "1px solid hsla(0, 0%, 100%, 0.06)",
@@ -271,11 +367,11 @@ export const Withdrawal = () => {
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
                   <input
-                    type="password"
+                    type="text"
                     placeholder="Enter code"
                     value={formData.zfcCode}
-                    onChange={(e) => setFormData({ ...formData, zfcCode: e.target.value })}
-                    className="w-full h-12 pl-9 pr-4 rounded-xl bg-secondary/60 border border-border/40 text-foreground placeholder:text-muted-foreground/50 focus:border-gold focus:ring-1 focus:ring-gold/30 focus:outline-none transition-all font-mono"
+                    onChange={(e) => setFormData({ ...formData, zfcCode: e.target.value.toUpperCase() })}
+                    className="w-full h-12 pl-9 pr-4 rounded-xl bg-secondary/60 border border-border/40 text-foreground placeholder:text-muted-foreground/50 focus:border-gold focus:ring-1 focus:ring-gold/30 focus:outline-none transition-all font-mono uppercase"
                   />
                 </div>
               </div>
@@ -283,9 +379,9 @@ export const Withdrawal = () => {
           </div>
 
           {/* Security Notice */}
-          <div 
+          <div
             className="flex items-start gap-3 p-3 rounded-xl animate-fade-in-up"
-            style={{ 
+            style={{
               animationDelay: "0.15s",
               background: "hsla(262, 76%, 57%, 0.08)",
               border: "1px solid hsla(262, 76%, 57%, 0.15)",
@@ -302,9 +398,9 @@ export const Withdrawal = () => {
             type="submit"
             disabled={!isFormValid || isSubmitting}
             className="w-full h-14 rounded-2xl font-display font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 animate-fade-in-up flex items-center justify-center gap-2"
-            style={{ 
+            style={{
               animationDelay: "0.2s",
-              background: isFormValid 
+              background: isFormValid
                 ? "linear-gradient(135deg, hsl(var(--violet)), hsl(var(--magenta)))"
                 : "hsla(240, 7%, 20%, 0.8)",
               boxShadow: isFormValid ? "0 8px 32px hsla(262, 76%, 57%, 0.35)" : "none",
@@ -312,7 +408,7 @@ export const Withdrawal = () => {
           >
             {isSubmitting ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
                 <span>Processing...</span>
               </>
             ) : (
