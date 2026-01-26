@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAdminData } from "@/hooks/useAdminData";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Search, 
   CheckCircle2, 
@@ -38,6 +39,7 @@ export const AdminPayments = () => {
   const [processing, setProcessing] = useState<string | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
   const pendingPayments = payments.filter(p => p.status === "pending");
 
@@ -94,6 +96,35 @@ export const AdminPayments = () => {
     await refreshData();
     setIsRefreshing(false);
     toast({ title: "Refreshed", description: "Payment list updated" });
+  };
+
+  // Get signed URL for receipt viewing (handles both public and private buckets)
+  const handleViewReceipt = async (receiptUrl: string) => {
+    setIsLoadingReceipt(true);
+    try {
+      // Extract path from URL if it's a full URL
+      let path = receiptUrl;
+      if (receiptUrl.includes("/storage/v1/object/public/receipts/")) {
+        path = receiptUrl.split("/storage/v1/object/public/receipts/")[1];
+      }
+
+      // Try to get signed URL for better security
+      const { data, error } = await supabase.functions.invoke("get-signed-receipt-url", {
+        body: { path },
+      });
+
+      if (error || !data?.signedUrl) {
+        // Fallback to direct URL if signed URL fails
+        setReceiptPreview(receiptUrl);
+      } else {
+        setReceiptPreview(data.signedUrl);
+      }
+    } catch {
+      // Fallback to direct URL
+      setReceiptPreview(receiptUrl);
+    } finally {
+      setIsLoadingReceipt(false);
+    }
   };
 
   if (isLoading) {
@@ -175,10 +206,15 @@ export const AdminPayments = () => {
                 </div>
                 {payment.receipt_url && (
                   <button
-                    onClick={() => setReceiptPreview(payment.receipt_url)}
-                    className="flex items-center gap-2 text-violet hover:text-violet/80 transition-colors"
+                    onClick={() => handleViewReceipt(payment.receipt_url!)}
+                    disabled={isLoadingReceipt}
+                    className="flex items-center gap-2 text-violet hover:text-violet/80 transition-colors disabled:opacity-50"
                   >
-                    <Receipt className="w-4 h-4" />
+                    {isLoadingReceipt ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Receipt className="w-4 h-4" />
+                    )}
                     <span>View Receipt</span>
                     <ExternalLink className="w-3 h-3" />
                   </button>
