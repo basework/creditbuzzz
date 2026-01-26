@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { 
   ArrowLeft,
   Bell,
@@ -21,12 +22,14 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
-  Check
+  Check,
+  Settings2
 } from "lucide-react";
 
 export const Settings = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { isAdmin } = useUserRole();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -280,8 +283,30 @@ export const Settings = () => {
           )}
         </GlassCard>
 
+        {/* Admin Panel - Only show for admins */}
+        {isAdmin && (
+          <button
+            onClick={() => navigate("/admin/payments")}
+            className="w-full animate-fade-in-up"
+            style={{ animationDelay: "0.15s" }}
+          >
+            <GlassCard className="flex items-center justify-between hover:bg-violet/5 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-violet/20">
+                  <Settings2 className="w-5 h-5 text-violet" />
+                </div>
+                <div className="text-left">
+                  <p className="font-semibold">Admin Panel</p>
+                  <p className="text-xs text-muted-foreground">Manage payments & users</p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            </GlassCard>
+          </button>
+        )}
+
         {/* Security Status */}
-        <GlassCard className="animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
+        <GlassCard className="animate-fade-in-up" style={{ animationDelay: isAdmin ? "0.2s" : "0.15s" }}>
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-magenta/20">
               <Shield className="w-5 h-5 text-magenta" />
