@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const UPLOAD_TIMEOUT = 10000; // 10 seconds
+const UPLOAD_TIMEOUT = 30000; // 30 seconds for XHR upload
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/jpg", "application/pdf"];
 
 interface UseReceiptUploadReturn {
@@ -17,9 +17,9 @@ interface UseReceiptUploadReturn {
   retryUpload: () => void;
 }
 
+// Compress image for mobile optimization
 const compressImage = (file: File): Promise<File> => {
   return new Promise((resolve, reject) => {
-    // Skip compression for PDFs
     if (file.type === "application/pdf") {
       resolve(file);
       return;
@@ -30,7 +30,6 @@ const compressImage = (file: File): Promise<File> => {
     const img = new Image();
 
     img.onload = () => {
-      // Revoke object URL to free memory
       URL.revokeObjectURL(img.src);
       
       const maxWidth = 1200;
@@ -71,21 +70,57 @@ const compressImage = (file: File): Promise<File> => {
   });
 };
 
+// XHR upload with real progress tracking
+const uploadWithXHR = (
+  signedUrl: string,
+  file: File,
+  onProgress: (percent: number) => void
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    
+    xhr.upload.addEventListener("progress", (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        onProgress(percent);
+      }
+    });
+
+    xhr.addEventListener("load", () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+      } else {
+        reject(new Error(`Upload failed with status ${xhr.status}`));
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      reject(new Error("Network error during upload"));
+    });
+
+    xhr.addEventListener("timeout", () => {
+      reject(new Error("Upload timeout"));
+    });
+
+    xhr.timeout = UPLOAD_TIMEOUT;
+    xhr.open("PUT", signedUrl);
+    xhr.setRequestHeader("Content-Type", file.type);
+    xhr.send(file);
+  });
+};
+
 export const useReceiptUpload = (): UseReceiptUploadReturn => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  
-  // Store the last file for retry functionality
   const lastFileRef = useRef<File | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
 
   const resetUpload = useCallback(() => {
-    // Cancel any in-progress upload
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+    if (xhrRef.current) {
+      xhrRef.current.abort();
     }
     setUploadedUrl(null);
     setFileName(null);
@@ -95,18 +130,13 @@ export const useReceiptUpload = (): UseReceiptUploadReturn => {
   }, []);
 
   const uploadReceipt = useCallback(async (file: File): Promise<string | null> => {
-    // Store file for potential retry
     lastFileRef.current = file;
     
     // Validate file type
     if (!ALLOWED_TYPES.includes(file.type)) {
       const errorMsg = "Please upload JPG, PNG, or PDF files only";
       setUploadError(errorMsg);
-      toast({
-        title: "Invalid file type",
-        description: errorMsg,
-        variant: "destructive",
-      });
+      toast({ title: "Invalid file type", description: errorMsg, variant: "destructive" });
       return null;
     }
 
@@ -114,11 +144,7 @@ export const useReceiptUpload = (): UseReceiptUploadReturn => {
     if (file.size > MAX_FILE_SIZE) {
       const errorMsg = "Maximum file size is 5MB";
       setUploadError(errorMsg);
-      toast({
-        title: "File too large",
-        description: errorMsg,
-        variant: "destructive",
-      });
+      toast({ title: "File too large", description: errorMsg, variant: "destructive" });
       return null;
     }
 
@@ -126,94 +152,71 @@ export const useReceiptUpload = (): UseReceiptUploadReturn => {
     setUploadProgress(5);
     setUploadError(null);
 
-    // Create abort controller for timeout
-    abortControllerRef.current = new AbortController();
-
     try {
-      // Get current user directly (bypass hook state lag on mobile)
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      // Get current session for auth header
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (userError || !user) {
+      if (sessionError || !session) {
         throw new Error("Please log in to upload receipts");
       }
 
-      setUploadProgress(15);
+      setUploadProgress(10);
 
       // Compress image if needed (skip for PDFs)
       let fileToUpload = file;
-      if (file.type.startsWith("image/") && file.size > 300000) { // Compress if > 300KB
+      if (file.type.startsWith("image/") && file.size > 300000) {
         try {
-          setUploadProgress(25);
           fileToUpload = await compressImage(file);
-          setUploadProgress(40);
+          setUploadProgress(15);
         } catch {
-          // Use original file if compression fails
           fileToUpload = file;
-          setUploadProgress(40);
         }
-      } else {
-        setUploadProgress(40);
       }
 
-      // Generate unique filename
-      const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const uniqueFileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+      setUploadProgress(20);
 
-      setUploadProgress(50);
+      // Get signed upload URL from edge function
+      const { data: signedData, error: signedError } = await supabase.functions.invoke(
+        "create-signed-upload-url",
+        {
+          body: {
+            fileName: file.name,
+            contentType: fileToUpload.type,
+          },
+        }
+      );
 
-      // Create upload promise with timeout
-      const uploadPromise = supabase.storage
-        .from("receipts")
-        .upload(uniqueFileName, fileToUpload, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error("Upload timeout - please try again"));
-        }, UPLOAD_TIMEOUT);
-      });
-
-      // Race between upload and timeout
-      setUploadProgress(60);
-      const { error: uploadError } = await Promise.race([uploadPromise, timeoutPromise]);
-
-      if (uploadError) {
-        throw new Error(uploadError.message);
+      if (signedError || !signedData?.signedUrl) {
+        throw new Error(signedError?.message || "Failed to get upload URL");
       }
 
-      setUploadProgress(85);
+      setUploadProgress(25);
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("receipts")
-        .getPublicUrl(uniqueFileName);
+      // Upload using XHR with real progress tracking
+      await uploadWithXHR(
+        signedData.signedUrl,
+        fileToUpload,
+        (percent) => {
+          // Map 0-100 to 25-95 range for overall progress
+          const mappedProgress = 25 + Math.round(percent * 0.7);
+          setUploadProgress(mappedProgress);
+        }
+      );
 
       setUploadProgress(100);
-      setUploadedUrl(urlData.publicUrl);
+      setUploadedUrl(signedData.publicUrl);
       setFileName(file.name);
 
-      toast({
-        title: "Receipt uploaded successfully",
-        description: file.name,
-      });
-
-      return urlData.publicUrl;
+      toast({ title: "Receipt uploaded successfully", description: file.name });
+      return signedData.publicUrl;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "Upload failed. Please try again.";
       setUploadError(errorMsg);
       setUploadProgress(0);
-      
-      toast({
-        title: "Upload failed",
-        description: errorMsg,
-        variant: "destructive",
-      });
+      toast({ title: "Upload failed", description: errorMsg, variant: "destructive" });
       return null;
     } finally {
       setIsUploading(false);
-      abortControllerRef.current = null;
     }
   }, []);
 
