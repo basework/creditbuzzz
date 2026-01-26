@@ -173,11 +173,6 @@ export const BuyZFC = () => {
       fileInputRef.current.value = '';
     }
     
-    if (!user) {
-      toast({ title: "Not logged in", description: "Please log in to upload", variant: "destructive" });
-      return;
-    }
-    
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       toast({ title: "File too large", description: "Maximum 10MB allowed", variant: "destructive" });
@@ -195,8 +190,14 @@ export const BuyZFC = () => {
     setReceiptName(file.name);
     
     try {
+      // Get current user directly from Supabase
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        throw new Error("Session expired. Please refresh the page.");
+      }
+      
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('receipts')
@@ -214,7 +215,7 @@ export const BuyZFC = () => {
       
     } catch (error) {
       console.error("Upload failed:", error);
-      toast({ title: "Upload failed", description: "Please try again", variant: "destructive" });
+      toast({ title: "Upload failed", description: error instanceof Error ? error.message : "Please try again", variant: "destructive" });
       setReceiptName("");
       setUploadedReceiptUrl(null);
       setReceiptUploaded(false);
