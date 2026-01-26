@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   CreditCard,
   Archive,
+  MessageSquare,
 } from "lucide-react";
 import { FloatingParticles } from "@/components/ui/FloatingParticles";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +23,7 @@ import { StatCard } from "@/components/admin/StatCard";
 import { UsersTable } from "@/components/admin/UsersTable";
 import { PaymentsTable } from "@/components/admin/PaymentsTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdminMessaging } from "@/components/admin/AdminMessaging";
 
 interface Profile {
   id: string;
@@ -201,24 +203,24 @@ export const AdminDashboard = () => {
 
       <main className="relative z-10 px-4 py-6 max-w-6xl mx-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4 w-full max-w-lg mx-auto mb-6 bg-secondary/50 p-1 rounded-xl">
+          <TabsList className="grid grid-cols-5 w-full max-w-xl mx-auto mb-6 bg-secondary/50 p-1 rounded-xl">
             <TabsTrigger
               value="overview"
-              className="flex items-center gap-1.5 data-[state=active]:bg-violet data-[state=active]:text-white rounded-lg text-sm"
+              className="flex items-center gap-1 data-[state=active]:bg-violet data-[state=active]:text-white rounded-lg text-xs sm:text-sm"
             >
               <LayoutDashboard className="w-4 h-4" />
               <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
             <TabsTrigger
               value="users"
-              className="flex items-center gap-1.5 data-[state=active]:bg-violet data-[state=active]:text-white rounded-lg text-sm"
+              className="flex items-center gap-1 data-[state=active]:bg-violet data-[state=active]:text-white rounded-lg text-xs sm:text-sm"
             >
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Users</span>
             </TabsTrigger>
             <TabsTrigger
               value="payments"
-              className="flex items-center gap-1.5 data-[state=active]:bg-violet data-[state=active]:text-white rounded-lg text-sm relative"
+              className="flex items-center gap-1 data-[state=active]:bg-violet data-[state=active]:text-white rounded-lg text-xs sm:text-sm relative"
             >
               <CreditCard className="w-4 h-4" />
               <span className="hidden sm:inline">Payments</span>
@@ -229,8 +231,15 @@ export const AdminDashboard = () => {
               )}
             </TabsTrigger>
             <TabsTrigger
+              value="messages"
+              className="flex items-center gap-1 data-[state=active]:bg-violet data-[state=active]:text-white rounded-lg text-xs sm:text-sm"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span className="hidden sm:inline">Messages</span>
+            </TabsTrigger>
+            <TabsTrigger
               value="archived"
-              className="flex items-center gap-1.5 data-[state=active]:bg-violet data-[state=active]:text-white rounded-lg text-sm"
+              className="flex items-center gap-1 data-[state=active]:bg-violet data-[state=active]:text-white rounded-lg text-xs sm:text-sm"
             >
               <Archive className="w-4 h-4" />
               <span className="hidden sm:inline">Archived</span>
@@ -324,6 +333,26 @@ export const AdminDashboard = () => {
                 </span>
               </div>
               <PaymentsTable payments={payments} onPaymentUpdated={fetchData} />
+            </motion.div>
+          </TabsContent>
+
+          {/* Messages Tab */}
+          <TabsContent value="messages">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-5 rounded-2xl bg-secondary/30 border border-border/40 max-w-lg mx-auto"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet/20 to-magenta/20 flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-violet" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-foreground">Send Messages</h3>
+                  <p className="text-xs text-muted-foreground">Broadcast to all or send individually</p>
+                </div>
+              </div>
+              <AdminMessaging />
             </motion.div>
           </TabsContent>
 

@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_broadcast: boolean
+          read_at: string | null
+          receiver_id: string | null
+          sender_id: string
+          title: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_broadcast?: boolean
+          read_at?: string | null
+          receiver_id?: string | null
+          sender_id: string
+          title: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_broadcast?: boolean
+          read_at?: string | null
+          receiver_id?: string | null
+          sender_id?: string
+          title?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
