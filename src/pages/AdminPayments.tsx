@@ -62,6 +62,48 @@ export const AdminPayments = () => {
         return;
       }
       fetchPayments();
+
+      // Real-time subscription for new payments and updates
+      const channel = supabase
+        .channel("admin-payments-realtime")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "payments",
+          },
+          (payload) => {
+            // New payment submitted - add to list instantly
+            console.log("New payment received:", payload.new);
+            setPayments((prev) => [payload.new as Payment, ...prev]);
+            toast({
+              title: "New Payment",
+              description: `New payment from ${(payload.new as Payment).full_name}`,
+            });
+          }
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "payments",
+          },
+          (payload) => {
+            // Payment updated (receipt uploaded, status changed)
+            setPayments((prev) =>
+              prev.map((p) =>
+                p.id === payload.new.id ? { ...p, ...payload.new } as Payment : p
+              )
+            );
+          }
+        )
+        .subscribe();
+
+      return () => {
+        channel.unsubscribe();
+      };
     }
   }, [user, isAdmin, authLoading, roleLoading, navigate]);
 

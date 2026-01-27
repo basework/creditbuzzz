@@ -118,7 +118,7 @@ export const PaymentPendingView = () => {
         transition={{ delay: 0.3 }}
         className="text-2xl font-bold text-foreground mb-3 tracking-tight"
       >
-        Payment Received
+        🕒 Payment Pending
       </motion.h2>
 
       {/* Subtitle */}
@@ -128,7 +128,7 @@ export const PaymentPendingView = () => {
         transition={{ delay: 0.4 }}
         className="text-sm text-muted-foreground max-w-xs mb-8 leading-relaxed"
       >
-        Your transaction is being verified by our secure payment processing system. You'll be notified instantly once confirmed.
+        Your payment has been received and is awaiting admin confirmation. You'll be notified instantly once approved.
       </motion.p>
 
       {/* Status Badge */}
