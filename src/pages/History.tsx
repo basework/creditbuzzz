@@ -82,7 +82,19 @@ export const History = () => {
     }
   };
 
-  const getStatusLabel = (status: string) => {
+  const getStatusLabel = (status: string, type: string) => {
+    if (type === "withdraw") {
+      switch (status) {
+        case "success":
+          return "Deducted";
+        case "pending":
+          return "Deducted";
+        case "failed":
+          return "Failed";
+        default:
+          return "Deducted";
+      }
+    }
     switch (status) {
       case "success":
         return "Completed";
@@ -207,14 +219,16 @@ export const History = () => {
                       </p>
                       <span 
                         className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
-                          txn.status === "success" 
+                          txn.type === "withdraw"
+                            ? "bg-magenta/20 text-magenta"
+                            : txn.status === "success" 
                             ? "bg-teal/20 text-teal" 
                             : txn.status === "pending"
                             ? "bg-gold/20 text-gold"
                             : "bg-magenta/20 text-magenta"
                         }`}
                       >
-                        {getStatusLabel(txn.status)}
+                        {getStatusLabel(txn.status, txn.type)}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">

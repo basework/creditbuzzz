@@ -59,10 +59,13 @@ export const Dashboard = () => {
   // Track route for persistence
   useRouteHistory();
 
-  // Sync balance from profile + real-time subscription for instant updates
+  // Sync balance from profile - stable initialization
   useEffect(() => {
-    if (profile?.balance !== undefined) {
-      setBalance(Number(profile.balance));
+    if (profile?.balance !== undefined && profile?.balance !== null) {
+      const numBalance = Number(profile.balance);
+      if (!isNaN(numBalance) && numBalance >= 0) {
+        setBalance(numBalance);
+      }
     }
   }, [profile?.balance]);
 
@@ -82,7 +85,8 @@ export const Dashboard = () => {
         },
         (payload) => {
           const newBalance = Number(payload.new.balance);
-          if (!isNaN(newBalance)) {
+          // Only update if valid number and greater than or equal to 0
+          if (!isNaN(newBalance) && newBalance >= 0) {
             setBalance(newBalance);
           }
         }

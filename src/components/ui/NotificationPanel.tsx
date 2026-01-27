@@ -101,6 +101,8 @@ export const NotificationPanel = () => {
     if (currentMessage) {
       markAsRead(currentMessage.id);
       setShowNotification(false);
+      // Also remove from list when notification is clicked (cleared)
+      setMessages((prev) => prev.filter((m) => m.id !== currentMessage.id));
     }
   };
 
@@ -137,15 +139,20 @@ export const NotificationPanel = () => {
         )}
       </button>
 
-      {/* WhatsApp-style Slide-in Notification - Positioned lower for visibility */}
+      {/* WhatsApp-style Drop-in Notification - Positioned for visibility */}
       <AnimatePresence>
         {showNotification && currentMessage && (
           <motion.div
-            initial={{ x: 400, opacity: 0, y: 0 }}
-            animate={{ x: 0, opacity: 1, y: 0 }}
-            exit={{ x: 400, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed top-32 right-4 z-[100] w-[320px] max-w-[calc(100vw-32px)]"
+            initial={{ y: -100, opacity: 0, scale: 0.9 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: -100, opacity: 0, scale: 0.9 }}
+            transition={{ 
+              type: "spring", 
+              damping: 20, 
+              stiffness: 300,
+              mass: 0.8
+            }}
+            className="fixed top-20 left-4 right-4 z-[100] max-w-[380px] mx-auto"
             onClick={handleNotificationClick}
           >
             <div
@@ -156,15 +163,22 @@ export const NotificationPanel = () => {
                   ? "hsla(var(--violet), 0.4)"
                   : "hsla(var(--teal), 0.4)",
                 backdropFilter: "blur(20px)",
+                boxShadow: currentMessage.is_broadcast
+                  ? "0 10px 40px hsla(262, 76%, 57%, 0.3)"
+                  : "0 10px 40px hsla(174, 88%, 56%, 0.3)",
               }}
             >
-              {/* Top accent bar */}
-              <div
+              {/* Top accent bar with animation */}
+              <motion.div
                 className="absolute top-0 left-0 right-0 h-1"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
                 style={{
                   background: currentMessage.is_broadcast
                     ? "linear-gradient(90deg, hsl(var(--violet)), hsl(var(--magenta)))"
                     : "linear-gradient(90deg, hsl(var(--teal)), hsl(var(--violet)))",
+                  transformOrigin: "left",
                 }}
               />
 
@@ -172,7 +186,10 @@ export const NotificationPanel = () => {
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", delay: 0.1 }}
                       className="w-8 h-8 rounded-full flex items-center justify-center"
                       style={{
                         background: currentMessage.is_broadcast
@@ -185,10 +202,10 @@ export const NotificationPanel = () => {
                       ) : (
                         <User className="w-4 h-4 text-teal" />
                       )}
-                    </div>
+                    </motion.div>
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        {currentMessage.is_broadcast ? "Broadcast" : "Personal Message"}
+                        {currentMessage.is_broadcast ? "📢 Broadcast" : "💬 Personal Message"}
                       </p>
                     </div>
                   </div>
@@ -198,26 +215,36 @@ export const NotificationPanel = () => {
                       markAsRead(currentMessage.id);
                       setShowNotification(false);
                     }}
-                    className="p-1 rounded-lg hover:bg-secondary/50 transition-colors"
+                    className="p-1.5 rounded-lg bg-secondary/50 hover:bg-destructive/20 hover:text-destructive transition-all"
                   >
-                    <X className="w-4 h-4 text-muted-foreground" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Content */}
-                <h4 className="text-sm font-bold text-foreground mb-1">
+                <motion.h4 
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="text-sm font-bold text-foreground mb-1"
+                >
                   {currentMessage.title}
-                </h4>
-                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+                </motion.h4>
+                <motion.p 
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-sm text-muted-foreground leading-relaxed line-clamp-3"
+                >
                   {currentMessage.content}
-                </p>
+                </motion.p>
 
                 {/* Footer */}
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
                   <span className="text-[10px] text-muted-foreground/70">
                     {formatTime(currentMessage.created_at)}
                   </span>
-                  <span className="text-xs text-muted-foreground/50">
+                  <span className="text-xs text-violet font-medium">
                     Tap to dismiss
                   </span>
                 </div>
