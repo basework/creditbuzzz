@@ -42,14 +42,15 @@ export const UsersTable = ({ users, onUserUpdated }: UsersTableProps) => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ status: "banned", ban_reason: reason })
+        .update({ status: "banned", ban_reason: reason, updated_at: new Date().toISOString() })
         .eq("id", selectedUser.id);
 
       if (error) throw error;
 
-      setSuccessMessage("User banned successfully");
+      setSuccessMessage("User banned instantly!");
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
+      // Immediate callback for instant UI update
       onUserUpdated();
     } catch (error: any) {
       toast({
@@ -69,14 +70,15 @@ export const UsersTable = ({ users, onUserUpdated }: UsersTableProps) => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ status: "active", ban_reason: null })
+        .update({ status: "active", ban_reason: null, updated_at: new Date().toISOString() })
         .eq("id", user.id);
 
       if (error) throw error;
 
-      setSuccessMessage("User unbanned successfully");
+      setSuccessMessage("User unbanned instantly!");
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 2000);
+      // Immediate callback for instant UI update
       onUserUpdated();
     } catch (error: any) {
       toast({

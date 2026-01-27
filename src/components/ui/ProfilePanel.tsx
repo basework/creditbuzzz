@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, User, Mail, Shield, CheckCircle, Copy, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ProfilePanelProps {
   isOpen: boolean;
@@ -10,20 +11,22 @@ interface ProfilePanelProps {
 
 export const ProfilePanel = ({ isOpen, onClose }: ProfilePanelProps) => {
   const [copied, setCopied] = useState(false);
+  const { profile } = useAuth();
   
-  const userData = {
-    email: "user@zenfi.com",
-    userId: "ZF-7829401",
-    status: "Verified",
-    memberSince: "January 2024",
-    tier: "Premium",
-  };
+  // Use real user data from profile
+  const userId = profile?.referral_code || `ZF-${profile?.user_id?.substring(0, 8) || "0000000"}`;
+  const userEmail = profile?.email || "user@zenfi.com";
+  const userName = profile?.full_name || "ZenFi User";
+  const memberSince = profile?.created_at 
+    ? new Date(profile.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })
+    : "January 2024";
+  const accountStatus = profile?.status === "active" ? "Active" : "Suspended";
 
   const handleCopyId = async () => {
     try {
-      await navigator.clipboard.writeText(userData.userId);
+      await navigator.clipboard.writeText(userId);
       setCopied(true);
-      toast({ title: "User ID Copied", description: userData.userId });
+      toast({ title: "User ID Copied", description: userId });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast({ title: "Failed to copy", variant: "destructive" });
@@ -56,9 +59,9 @@ export const ProfilePanel = ({ isOpen, onClose }: ProfilePanelProps) => {
           <h2 className="font-display font-semibold text-lg">Profile</h2>
           <button 
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-secondary transition-colors"
+            className="p-2.5 rounded-xl bg-secondary/80 hover:bg-destructive/20 hover:text-destructive transition-all group"
           >
-            <X className="w-5 h-5 text-muted-foreground" />
+            <X className="w-5 h-5 text-muted-foreground group-hover:text-destructive transition-colors" />
           </button>
         </div>
 
@@ -76,8 +79,11 @@ export const ProfilePanel = ({ isOpen, onClose }: ProfilePanelProps) => {
               <User className="w-10 h-10 text-white" />
             </div>
             
+            {/* User's Full Name */}
+            <p className="text-lg font-bold text-foreground mb-1">{userName}</p>
+            
             <div className="flex items-center justify-center gap-2 mb-1">
-              <span className="font-display font-semibold text-lg">{userData.userId}</span>
+              <span className="font-display font-semibold text-sm text-muted-foreground">{userId}</span>
               <button 
                 onClick={handleCopyId}
                 className="p-1 rounded-lg hover:bg-secondary transition-colors"
@@ -91,8 +97,10 @@ export const ProfilePanel = ({ isOpen, onClose }: ProfilePanelProps) => {
             </div>
             
             <div className="flex items-center justify-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-teal animate-pulse" />
-              <span className="text-sm text-teal font-medium">{userData.status}</span>
+              <div className={`w-2 h-2 rounded-full ${accountStatus === "Active" ? "bg-teal" : "bg-destructive"} animate-pulse`} />
+              <span className={`text-sm font-medium ${accountStatus === "Active" ? "text-teal" : "text-destructive"}`}>
+                {accountStatus} • Verified
+              </span>
             </div>
           </div>
 
@@ -111,7 +119,7 @@ export const ProfilePanel = ({ isOpen, onClose }: ProfilePanelProps) => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Email</p>
-                  <p className="text-sm font-medium truncate">{userData.email}</p>
+                  <p className="text-sm font-medium truncate">{userEmail}</p>
                 </div>
               </div>
             </div>
@@ -129,7 +137,7 @@ export const ProfilePanel = ({ isOpen, onClose }: ProfilePanelProps) => {
                 </div>
                 <div className="flex-1">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Account Status</p>
-                  <p className="text-sm font-medium">Active • {userData.tier}</p>
+                  <p className="text-sm font-medium">{accountStatus} • Premium</p>
                 </div>
                 <CheckCircle className="w-5 h-5 text-teal" />
               </div>
@@ -148,7 +156,7 @@ export const ProfilePanel = ({ isOpen, onClose }: ProfilePanelProps) => {
                 </div>
                 <div className="flex-1">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">Member Since</p>
-                  <p className="text-sm font-medium">{userData.memberSince}</p>
+                  <p className="text-sm font-medium">{memberSince}</p>
                 </div>
               </div>
             </div>
