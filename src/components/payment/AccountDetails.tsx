@@ -268,7 +268,7 @@ export const AccountDetails = ({ userId, paymentId, onUploadComplete }: AccountD
         )}
       </section>
 
-      {/* Proceed Button */}
+      {/* Confirm Payment Button */}
       <motion.button
         onClick={onUploadComplete}
         disabled={!uploadedFile}
@@ -280,7 +280,7 @@ export const AccountDetails = ({ userId, paymentId, onUploadComplete }: AccountD
             : "bg-secondary/50 text-muted-foreground cursor-not-allowed"
         }`}
       >
-        Proceed to Payment Status
+        ✓ Confirm Payment
       </motion.button>
 
       {/* Receipt Upload Warning */}
