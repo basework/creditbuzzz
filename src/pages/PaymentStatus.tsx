@@ -4,97 +4,24 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Receipt } from "lucide-react";
 import { FloatingParticles } from "@/components/ui/FloatingParticles";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { usePaymentState } from "@/hooks/usePaymentState";
 import { PaymentPendingView } from "@/components/payment/PaymentPendingView";
 import { PaymentApprovedView } from "@/components/payment/PaymentApprovedView";
 import { PaymentRejectedView } from "@/components/payment/PaymentRejectedView";
 
-interface Payment {
-  id: string;
-  amount: number;
-  status: string;
-  receipt_url: string | null;
-  created_at: string;
-  rejection_reason?: string | null;
-}
-
 export const PaymentStatus = () => {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
-  const [latestPayment, setLatestPayment] = useState<Payment | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { latestPayment, isLoading: paymentLoading } = usePaymentState(user?.id);
 
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/login");
       return;
     }
-
-    if (user) {
-      fetchLatestPayment();
-
-      // Real-time subscription for payment status updates
-      const channel = supabase
-        .channel("payment-status-updates")
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "payments",
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            // Instantly update the payment status
-            setLatestPayment((prev) => {
-              if (prev && prev.id === payload.new.id) {
-                return { ...prev, ...payload.new } as Payment;
-              }
-              return prev;
-            });
-          }
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "payments",
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            // If a new payment is created, show it
-            setLatestPayment(payload.new as Payment);
-          }
-        )
-        .subscribe();
-
-      return () => {
-        channel.unsubscribe();
-      };
-    }
   }, [user, authLoading, navigate]);
 
-  const fetchLatestPayment = async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("payments")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error) {
-      console.error("Error fetching payment:", error);
-    } else {
-      setLatestPayment(data);
-    }
-    setIsLoading(false);
-  };
-
-  if (authLoading || isLoading) {
+  if (authLoading || paymentLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-violet border-t-transparent rounded-full animate-spin" />
@@ -105,7 +32,7 @@ export const PaymentStatus = () => {
   const getStatusView = () => {
     if (!latestPayment) {
       return (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="flex flex-col items-center justify-center py-16 text-center px-5">
           <Receipt className="w-16 h-16 text-muted-foreground/50 mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">No Payments Yet</h3>
           <p className="text-sm text-muted-foreground mb-6">
