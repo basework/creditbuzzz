@@ -15,6 +15,7 @@ import { NotificationPanel } from "@/components/ui/NotificationPanel";
 import { useClaimTimer } from "@/hooks/useClaimTimer";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { useAuth } from "@/hooks/useAuth";
+import { usePaymentState } from "@/hooks/usePaymentState";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import {
@@ -46,7 +47,8 @@ const actionButtons = [
 
 export const Dashboard = () => {
   const navigate = useNavigate();
-  const { profile, isBanned, isLoading: authLoading } = useAuth();
+  const { user, profile, isBanned, isLoading: authLoading } = useAuth();
+  const { hasPendingPayment, latestPayment, isLoading: paymentLoading } = usePaymentState(user?.id);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProfilePanel, setShowProfilePanel] = useState(false);
   const [balance, setBalance] = useState(0);
@@ -58,6 +60,14 @@ export const Dashboard = () => {
   
   // Track route for persistence
   useRouteHistory();
+
+  // Check for pending payment on dashboard load and redirect if needed
+  useEffect(() => {
+    if (!paymentLoading && hasPendingPayment && latestPayment) {
+      // User has a pending payment - they might need to see status
+      // We don't auto-redirect from dashboard, but we'll handle it in Buy ZFC
+    }
+  }, [paymentLoading, hasPendingPayment, latestPayment]);
 
   // Sync balance from profile - stable initialization
   useEffect(() => {
@@ -180,6 +190,11 @@ export const Dashboard = () => {
 
   const handleActionClick = (route?: string) => {
     if (route) {
+      // If user is trying to go to Buy ZFC and has pending payment, redirect to status
+      if (route === "/buy-zfc" && hasPendingPayment) {
+        navigate("/payment-status");
+        return;
+      }
       navigate(route);
     }
   };
