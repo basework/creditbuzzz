@@ -21,6 +21,7 @@ export const NotificationPanel = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [currentMessage, setCurrentMessage] = useState<Message | null>(null);
   const [showPanel, setShowPanel] = useState(false);
+  const [showExpandedMessage, setShowExpandedMessage] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -97,13 +98,11 @@ export const NotificationPanel = () => {
     setMessages((prev) => prev.filter((m) => m.id !== messageId));
   };
 
-  const handleNotificationClick = () => {
-    if (currentMessage) {
-      markAsRead(currentMessage.id);
-      setShowNotification(false);
-      // Also remove from list when notification is clicked (cleared)
-      setMessages((prev) => prev.filter((m) => m.id !== currentMessage.id));
-    }
+  // Open expanded message view from panel
+  const openMessageFromPanel = (message: Message) => {
+    setCurrentMessage(message);
+    setShowExpandedMessage(true);
+    setShowPanel(false);
   };
 
   const formatTime = (dateStr: string) => {
@@ -139,117 +138,159 @@ export const NotificationPanel = () => {
         )}
       </button>
 
-      {/* WhatsApp-style Drop-in Notification - Positioned for visibility */}
+      {/* Notification Banner - Positioned lower for visibility */}
       <AnimatePresence>
-        {showNotification && currentMessage && (
+        {showNotification && currentMessage && !showExpandedMessage && (
           <motion.div
-            initial={{ y: -100, opacity: 0, scale: 0.9 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: -100, opacity: 0, scale: 0.9 }}
-            transition={{ 
-              type: "spring", 
-              damping: 20, 
-              stiffness: 300,
-              mass: 0.8
-            }}
-            className="fixed top-20 left-4 right-4 z-[100] max-w-[380px] mx-auto"
-            onClick={handleNotificationClick}
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -50, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed top-28 left-4 right-4 z-[100] max-w-[380px] mx-auto"
           >
             <div
-              className="relative overflow-hidden rounded-2xl border shadow-2xl cursor-pointer hover:scale-[1.02] transition-transform"
+              onClick={() => setShowExpandedMessage(true)}
+              className="relative overflow-hidden rounded-xl border cursor-pointer hover:scale-[1.02] transition-transform p-3"
               style={{
-                background: "linear-gradient(135deg, hsla(var(--card), 0.98), hsla(var(--card), 0.95))",
+                background: "linear-gradient(135deg, hsl(var(--card)), hsl(var(--secondary)))",
                 borderColor: currentMessage.is_broadcast
-                  ? "hsla(var(--violet), 0.4)"
-                  : "hsla(var(--teal), 0.4)",
-                backdropFilter: "blur(20px)",
+                  ? "hsl(var(--violet))"
+                  : "hsl(var(--teal))",
                 boxShadow: currentMessage.is_broadcast
-                  ? "0 10px 40px hsla(262, 76%, 57%, 0.3)"
-                  : "0 10px 40px hsla(174, 88%, 56%, 0.3)",
+                  ? "0 8px 32px hsla(262, 76%, 57%, 0.4)"
+                  : "0 8px 32px hsla(174, 88%, 56%, 0.4)",
               }}
             >
-              {/* Top accent bar with animation */}
-              <motion.div
-                className="absolute top-0 left-0 right-0 h-1"
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                  style={{
+                    background: currentMessage.is_broadcast
+                      ? "linear-gradient(135deg, hsl(var(--violet)), hsl(var(--magenta)))"
+                      : "linear-gradient(135deg, hsl(var(--teal)), hsl(var(--violet)))",
+                  }}
+                >
+                  {currentMessage.is_broadcast ? (
+                    <Users className="w-5 h-5 text-white" />
+                  ) : (
+                    <User className="w-5 h-5 text-white" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-violet">
+                    {currentMessage.is_broadcast ? "📢 New Broadcast" : "💬 New Message"}
+                  </p>
+                  <p className="text-sm font-bold text-foreground truncate">
+                    {currentMessage.title}
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    markAsRead(currentMessage.id);
+                    setShowNotification(false);
+                  }}
+                  className="p-2 rounded-full bg-secondary/80 hover:bg-destructive/30 transition-colors"
+                >
+                  <X className="w-4 h-4 text-foreground" />
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 text-center">Tap to read full message</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Expanded Message Modal */}
+      <AnimatePresence>
+        {showExpandedMessage && currentMessage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => {
+              setShowExpandedMessage(false);
+              setShowNotification(false);
+              markAsRead(currentMessage.id);
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm bg-card rounded-2xl border border-border shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div
+                className="p-4 flex items-center justify-between"
                 style={{
                   background: currentMessage.is_broadcast
-                    ? "linear-gradient(90deg, hsl(var(--violet)), hsl(var(--magenta)))"
-                    : "linear-gradient(90deg, hsl(var(--teal)), hsl(var(--violet)))",
-                  transformOrigin: "left",
+                    ? "linear-gradient(135deg, hsla(var(--violet), 0.2), hsla(var(--magenta), 0.2))"
+                    : "linear-gradient(135deg, hsla(var(--teal), 0.2), hsla(var(--violet), 0.2))",
                 }}
-              />
-
-              <div className="p-4">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: "spring", delay: 0.1 }}
-                      className="w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{
-                        background: currentMessage.is_broadcast
-                          ? "linear-gradient(135deg, hsla(var(--violet), 0.2), hsla(var(--magenta), 0.2))"
-                          : "linear-gradient(135deg, hsla(var(--teal), 0.2), hsla(var(--violet), 0.2))",
-                      }}
-                    >
-                      {currentMessage.is_broadcast ? (
-                        <Users className="w-4 h-4 text-violet" />
-                      ) : (
-                        <User className="w-4 h-4 text-teal" />
-                      )}
-                    </motion.div>
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        {currentMessage.is_broadcast ? "📢 Broadcast" : "💬 Personal Message"}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      markAsRead(currentMessage.id);
-                      setShowNotification(false);
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                    style={{
+                      background: currentMessage.is_broadcast
+                        ? "linear-gradient(135deg, hsl(var(--violet)), hsl(var(--magenta)))"
+                        : "linear-gradient(135deg, hsl(var(--teal)), hsl(var(--violet)))",
                     }}
-                    className="p-1.5 rounded-lg bg-secondary/50 hover:bg-destructive/20 hover:text-destructive transition-all"
                   >
-                    <X className="w-4 h-4" />
-                  </button>
+                    {currentMessage.is_broadcast ? (
+                      <Users className="w-5 h-5 text-white" />
+                    ) : (
+                      <User className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {currentMessage.is_broadcast ? "📢 Broadcast" : "💬 Personal"}
+                    </p>
+                    <p className="text-xs text-muted-foreground/70">
+                      {formatTime(currentMessage.created_at)}
+                    </p>
+                  </div>
                 </div>
-
-                {/* Content */}
-                <motion.h4 
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 }}
-                  className="text-sm font-bold text-foreground mb-1"
+                <button
+                  onClick={() => {
+                    setShowExpandedMessage(false);
+                    setShowNotification(false);
+                    markAsRead(currentMessage.id);
+                  }}
+                  className="p-2 rounded-full bg-secondary/80 hover:bg-destructive/30 transition-colors"
                 >
-                  {currentMessage.title}
-                </motion.h4>
-                <motion.p 
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="text-sm text-muted-foreground leading-relaxed line-clamp-3"
-                >
-                  {currentMessage.content}
-                </motion.p>
-
-                {/* Footer */}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
-                  <span className="text-[10px] text-muted-foreground/70">
-                    {formatTime(currentMessage.created_at)}
-                  </span>
-                  <span className="text-xs text-violet font-medium">
-                    Tap to dismiss
-                  </span>
-                </div>
+                  <X className="w-5 h-5 text-foreground" />
+                </button>
               </div>
-            </div>
+
+              {/* Content */}
+              <div className="p-5">
+                <h3 className="text-lg font-bold text-foreground mb-3">
+                  {currentMessage.title}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {currentMessage.content}
+                </p>
+              </div>
+
+              {/* Footer */}
+              <div className="p-4 border-t border-border/30">
+                <button
+                  onClick={() => {
+                    setShowExpandedMessage(false);
+                    setShowNotification(false);
+                    markAsRead(currentMessage.id);
+                  }}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-violet to-magenta text-white font-semibold text-sm"
+                >
+                  Got it
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -310,7 +351,8 @@ export const NotificationPanel = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: 100 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`relative p-4 rounded-xl border transition-all ${
+                      onClick={() => openMessageFromPanel(message)}
+                      className={`relative p-4 rounded-xl border transition-all cursor-pointer hover:scale-[1.02] ${
                         message.read_at
                           ? "bg-secondary/20 border-border/30"
                           : "bg-secondary/50 border-violet/30"
@@ -340,26 +382,19 @@ export const NotificationPanel = () => {
                       <h4 className="text-sm font-bold text-foreground mb-1">
                         {message.title}
                       </h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
                         {message.content}
                       </p>
 
                       <div className="flex items-center justify-between mt-3">
-                        {!message.read_at ? (
-                          <button
-                            onClick={() => markAsRead(message.id)}
-                            className="flex items-center gap-1 text-xs font-semibold text-violet hover:text-violet/80 transition-colors"
-                          >
-                            <Check className="w-3 h-3" />
-                            Mark as read
-                          </button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground/50">Read</span>
-                        )}
+                        <span className="text-xs text-violet font-medium">Tap to read</span>
                         
                         {/* Clear/Remove button */}
                         <button
-                          onClick={() => clearMessage(message.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            clearMessage(message.id);
+                          }}
                           className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive transition-colors"
                         >
                           <Trash2 className="w-3 h-3" />
