@@ -25,24 +25,24 @@ import {
   Users,
   Clock,
   Headphones,
-  Coins,
   ChevronRight,
   Timer,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import carouselImage1 from "@/assets/carousel-1.jpeg";
 import carouselImage2 from "@/assets/carousel-2.jpeg";
+import zfcIcon from "@/assets/zfc-icon.png";
 
 const carouselImages = [carouselImage1, carouselImage2];
 
 const TRANSACTIONS_KEY = "zenfi_transactions";
 
 const actionButtons = [
-  { icon: Coins, label: "Buy ZFC", color: "from-violet to-magenta", route: "/buy-zfc", animation: "pulse" as const },
-  { icon: Gift, label: "Refer & Earn", color: "from-magenta to-gold", route: "/referral", animation: "bounce" as const },
-  { icon: Users, label: "Community", color: "from-teal to-violet", route: "/community", animation: "float" as const },
-  { icon: Clock, label: "History", color: "from-gold to-magenta", route: "/history", animation: "glow" as const },
-  { icon: Headphones, label: "Support", color: "from-violet to-teal", route: "/support", animation: "pulse" as const },
+  { icon: null, customIcon: zfcIcon, label: "Buy ZFC", color: "from-violet to-magenta", route: "/buy-zfc", animation: "pulse" as const },
+  { icon: Gift, customIcon: null, label: "Refer & Earn", color: "from-magenta to-gold", route: "/referral", animation: "bounce" as const },
+  { icon: Users, customIcon: null, label: "Community", color: "from-teal to-violet", route: "/community", animation: "float" as const },
+  { icon: Clock, customIcon: null, label: "History", color: "from-gold to-magenta", route: "/history", animation: "glow" as const },
+  { icon: Headphones, customIcon: null, label: "Support", color: "from-violet to-teal", route: "/support", animation: "pulse" as const },
 ];
 
 export const Dashboard = () => {
@@ -348,11 +348,15 @@ export const Dashboard = () => {
                     boxShadow: "0 3px 12px hsla(262, 76%, 57%, 0.3), inset 0 1px 0 hsla(0, 0%, 100%, 0.1)",
                   }}
                 >
-                  <AnimatedIcon 
-                    icon={action.icon} 
-                    className="w-5 h-5 text-white" 
-                    animationType={action.animation}
-                  />
+                  {action.customIcon ? (
+                    <img src={action.customIcon} alt={action.label} className="w-7 h-7 rounded-full object-cover" />
+                  ) : action.icon && (
+                    <AnimatedIcon 
+                      icon={action.icon} 
+                      className="w-5 h-5 text-white" 
+                      animationType={action.animation}
+                    />
+                  )}
                 </button>
                 <span className="text-[9px] font-medium text-muted-foreground text-center leading-tight">
                   {action.label}
