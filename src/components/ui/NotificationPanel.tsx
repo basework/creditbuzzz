@@ -302,7 +302,7 @@ export const NotificationPanel = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-md"
             onClick={() => setShowPanel(false)}
           >
             <motion.div
@@ -310,11 +310,14 @@ export const NotificationPanel = () => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-card border-l border-border shadow-2xl"
+              className="absolute right-0 top-0 bottom-0 w-full max-w-md bg-background border-l border-border shadow-2xl"
               onClick={(e) => e.stopPropagation()}
+              style={{
+                boxShadow: "0 0 50px hsla(262, 76%, 57%, 0.2)",
+              }}
             >
               {/* Panel Header */}
-              <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border p-4">
+              <div className="sticky top-0 z-10 bg-background border-b border-border p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet/20 to-magenta/20 flex items-center justify-center">
