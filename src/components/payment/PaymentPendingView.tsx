@@ -206,16 +206,39 @@ export const PaymentPendingView = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.9 }}
-        className="mt-8"
+        className="mt-10"
       >
-        <Button
-          variant="outline"
+        <button
           onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl border-border/50 hover:bg-secondary/50 transition-all"
+          className="group relative flex items-center justify-center gap-3 px-8 py-3.5 rounded-xl font-semibold text-sm uppercase tracking-wider transition-all duration-300 overflow-hidden"
+          style={{
+            background: "linear-gradient(135deg, hsla(var(--secondary), 0.8), hsla(var(--secondary), 0.4))",
+            border: "1.5px solid hsla(var(--gold), 0.3)",
+            boxShadow: "0 4px 20px hsla(0, 0%, 0%, 0.3), inset 0 1px 0 hsla(255, 255%, 255%, 0.05)",
+          }}
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
-        </Button>
+          {/* Hover glow effect */}
+          <span 
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            style={{
+              background: "linear-gradient(135deg, hsla(var(--gold), 0.1), hsla(var(--violet), 0.1))",
+            }}
+          />
+          
+          {/* Arrow with animation */}
+          <motion.span
+            className="relative z-10"
+            whileHover={{ x: -3 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
+            <ArrowLeft className="w-5 h-5 text-gold" strokeWidth={2.5} />
+          </motion.span>
+          
+          {/* Text */}
+          <span className="relative z-10 text-foreground group-hover:text-gold transition-colors duration-300">
+            Back to Dashboard
+          </span>
+        </button>
       </motion.div>
     </motion.div>
   );
