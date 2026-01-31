@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Users, X, ExternalLink } from "lucide-react";
+import { Bell, Users, ExternalLink, Gift, Sparkles } from "lucide-react";
 import { LuxuryButton } from "./LuxuryButton";
 
 interface OnboardingModalProps {
@@ -7,9 +7,10 @@ interface OnboardingModalProps {
 }
 
 export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
-  // Step order: community FIRST, notifications SECOND
-  const [step, setStep] = useState<"community" | "notifications">("community");
+  // Step order: community FIRST, notifications SECOND, bonus THIRD
+  const [step, setStep] = useState<"community" | "notifications" | "bonus">("community");
   const [communityJoined, setCommunityJoined] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
 
   const handleJoinCommunity = () => {
     window.open("https://whatsapp.com/channel/0029VbBuf3I23n3iPMYZnx2f", "_blank");
@@ -17,7 +18,6 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
   };
 
   const handleProceedToNotifications = () => {
-    // Only allow proceeding if user has clicked join
     if (communityJoined) {
       setStep("notifications");
     }
@@ -31,11 +31,19 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
     } catch {
       console.log("Notifications not supported");
     }
-    onComplete();
+    setStep("bonus");
   };
 
   const handleSkipNotifications = () => {
-    onComplete();
+    setStep("bonus");
+  };
+
+  const handleClaimBonus = () => {
+    setIsClaiming(true);
+    // Short delay for visual feedback before completing
+    setTimeout(() => {
+      onComplete();
+    }, 800);
   };
 
   return (
@@ -107,7 +115,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
                 </LuxuryButton>
               )}
             </>
-          ) : (
+          ) : step === "notifications" ? (
             <>
               {/* Notification Icon */}
               <div
@@ -140,6 +148,79 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
                 Skip for now
               </button>
             </>
+          ) : (
+            <>
+              {/* Bonus Step */}
+              <div className="relative">
+                {/* Animated sparkles background */}
+                <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+                  <div className="absolute top-2 left-4 w-2 h-2 bg-gold rounded-full animate-pulse opacity-60" />
+                  <div className="absolute top-6 right-6 w-1.5 h-1.5 bg-teal rounded-full animate-pulse opacity-50" style={{ animationDelay: "0.3s" }} />
+                  <div className="absolute bottom-8 left-8 w-1 h-1 bg-magenta rounded-full animate-pulse opacity-40" style={{ animationDelay: "0.6s" }} />
+                  <div className="absolute top-12 left-16 w-1.5 h-1.5 bg-violet rounded-full animate-pulse opacity-50" style={{ animationDelay: "0.9s" }} />
+                </div>
+
+                {/* Gift Icon with glow */}
+                <div
+                  className="w-20 h-20 mx-auto mb-5 rounded-2xl flex items-center justify-center relative"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, hsla(37, 89%, 63%, 0.25), hsla(289, 100%, 65%, 0.15))",
+                    border: "1.5px solid hsla(37, 89%, 63%, 0.5)",
+                    boxShadow: "0 0 30px hsla(37, 89%, 63%, 0.3), inset 0 0 20px hsla(37, 89%, 63%, 0.1)",
+                  }}
+                >
+                  <Gift className="w-10 h-10 text-gold" />
+                  <Sparkles className="w-4 h-4 text-gold absolute -top-1 -right-1 animate-pulse" />
+                </div>
+
+                <h2 className="text-xl font-display font-semibold text-center mb-1">
+                  Welcome Bonus! 🎁
+                </h2>
+                <p className="text-muted-foreground text-xs text-center mb-4 uppercase tracking-widest">
+                  New Member Reward
+                </p>
+
+                {/* Amount Display */}
+                <div
+                  className="relative py-5 px-4 rounded-xl mb-5 text-center"
+                  style={{
+                    background: "linear-gradient(135deg, hsla(37, 89%, 63%, 0.1), hsla(262, 76%, 57%, 0.05))",
+                    border: "1px solid hsla(37, 89%, 63%, 0.3)",
+                  }}
+                >
+                  <p className="text-muted-foreground text-xs mb-1 uppercase tracking-wider">
+                    Your Bonus
+                  </p>
+                  <p 
+                    className="text-3xl font-bold font-display"
+                    style={{
+                      background: "linear-gradient(135deg, hsl(var(--gold)), hsl(var(--teal)))",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      textShadow: "0 0 40px hsla(37, 89%, 63%, 0.3)",
+                    }}
+                  >
+                    ₦130,000
+                  </p>
+                  <p className="text-muted-foreground text-xs mt-2">
+                    Credited to your ZenFi wallet
+                  </p>
+                </div>
+
+                <LuxuryButton 
+                  onClick={handleClaimBonus} 
+                  loading={isClaiming}
+                  className="relative overflow-hidden"
+                >
+                  {isClaiming ? "Claiming..." : "Claim Bonus"}
+                </LuxuryButton>
+
+                <p className="text-muted-foreground/50 text-xs text-center mt-4">
+                  One-time bonus for new members only
+                </p>
+              </div>
+            </>
           )}
 
           {/* Step indicators */}
@@ -152,6 +233,11 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
             <div
               className={`w-2 h-2 rounded-full transition-colors ${
                 step === "notifications" ? "bg-violet" : "bg-muted"
+              }`}
+            />
+            <div
+              className={`w-2 h-2 rounded-full transition-colors ${
+                step === "bonus" ? "bg-gold" : "bg-muted"
               }`}
             />
           </div>
