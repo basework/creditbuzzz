@@ -11,6 +11,9 @@ interface VirtualBankCardProps {
   isLoading?: boolean;
 }
 
+const WELCOME_START = 320000;
+const WELCOME_ANIMATION_KEY = "zenfi_welcome_animation_done";
+
 export const VirtualBankCard = ({
   balance = 130000,
   cardNumber = "4829",
@@ -22,18 +25,67 @@ export const VirtualBankCard = ({
   const [isHidden, setIsHidden] = useState(false);
   const [displayBalance, setDisplayBalance] = useState(balance);
   const [isGlowing, setIsGlowing] = useState(false);
+  const [isWelcomeAnimating, setIsWelcomeAnimating] = useState(false);
   const prevBalanceRef = useRef(balance);
+  const hasRunWelcome = useRef(false);
 
-  // Instant balance update with smooth count-up animation
+  // Welcome countdown animation (320k -> actual balance)
   useEffect(() => {
-    if (balance !== prevBalanceRef.current) {
+    const alreadyDone = sessionStorage.getItem(WELCOME_ANIMATION_KEY);
+    
+    if (!alreadyDone && balance > 0 && !hasRunWelcome.current && !isLoading) {
+      hasRunWelcome.current = true;
+      setDisplayBalance(WELCOME_START);
+      setIsWelcomeAnimating(true);
+      
+      // Small delay before starting countdown
+      const startDelay = setTimeout(() => {
+        const duration = 2800; // 2.8 seconds - smooth, not too fast
+        const steps = 80;
+        const diff = WELCOME_START - balance;
+        let step = 0;
+        
+        const timer = setInterval(() => {
+          step++;
+          const progress = step / steps;
+          // Ease-out cubic for smooth deceleration at the end
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          const currentValue = WELCOME_START - (diff * easeOut);
+          
+          if (step >= steps) {
+            setDisplayBalance(balance);
+            setIsWelcomeAnimating(false);
+            setIsGlowing(true);
+            setTimeout(() => setIsGlowing(false), 800);
+            sessionStorage.setItem(WELCOME_ANIMATION_KEY, "true");
+            clearInterval(timer);
+          } else {
+            setDisplayBalance(Math.floor(currentValue));
+          }
+        }, duration / steps);
+
+        return () => clearInterval(timer);
+      }, 500);
+
+      return () => clearTimeout(startDelay);
+    } else if (alreadyDone) {
+      setDisplayBalance(balance);
+    }
+    
+    prevBalanceRef.current = balance;
+  }, [balance, isLoading]);
+
+  // Regular balance update animation (after welcome is done)
+  useEffect(() => {
+    const alreadyDone = sessionStorage.getItem(WELCOME_ANIMATION_KEY);
+    
+    if (alreadyDone && balance !== prevBalanceRef.current && !isWelcomeAnimating) {
       const diff = balance - prevBalanceRef.current;
       const startValue = prevBalanceRef.current;
-      const duration = 400; // Fast count-up
+      const duration = 400;
       const steps = 20;
       let step = 0;
       
-      // Trigger glow effect
       setIsGlowing(true);
       setTimeout(() => setIsGlowing(false), 600);
       
@@ -54,7 +106,7 @@ export const VirtualBankCard = ({
       prevBalanceRef.current = balance;
       return () => clearInterval(timer);
     }
-  }, [balance]);
+  }, [balance, isWelcomeAnimating]);
 
   const formatBalance = (value: number) => {
     return new Intl.NumberFormat('en-NG', {
