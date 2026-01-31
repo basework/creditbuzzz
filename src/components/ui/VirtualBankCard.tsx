@@ -12,7 +12,7 @@ interface VirtualBankCardProps {
 }
 
 export const VirtualBankCard = ({
-  balance = 180000,
+  balance = 130000,
   cardNumber = "4829",
   className,
   userId = "ZF-7829401",
