@@ -155,6 +155,14 @@ export const Dashboard = () => {
     }
   }, []);
 
+  // TEMPORARY: Show withdrawal success toast for testing
+  useEffect(() => {
+    toast({
+      title: "✅ Withdrawal Successful!",
+      description: "₦50,000 has been sent to your bank account.",
+    });
+  }, []);
+
   const addTransaction = (type: "claim" | "withdraw", amount: number) => {
     const transaction = {
       id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
