@@ -71,7 +71,7 @@ export const PaymentsTable = ({
   const generateZfcCode = (): string => {
     const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
     const digits = "0123456789";
-    let code = "ZFC";
+    let code = "XFC";
     for (let i = 0; i < 6; i++) {
       if (i % 2 === 0) {
         code += digits[Math.floor(Math.random() * digits.length)];
