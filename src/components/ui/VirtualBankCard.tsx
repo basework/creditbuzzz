@@ -113,7 +113,7 @@ export const VirtualBankCard = ({
             <span className="text-[9px] font-medium text-violet">Watch</span>
           </button>
           <span className="text-xs font-bold tracking-wider gradient-text">
-            ZENFI
+            CREDITBUZZ
           </span>
         </div>
       </div>

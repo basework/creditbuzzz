@@ -15,9 +15,9 @@ export const ProfilePanel = ({ isOpen, onClose }: ProfilePanelProps) => {
   const { profile } = useAuth();
   
   // Use real user data from profile
-  const userId = profile?.referral_code || `ZF-${profile?.user_id?.substring(0, 8) || "0000000"}`;
-  const userEmail = profile?.email || "user@zenfi.com";
-  const userName = profile?.full_name || "ZenFi User";
+  const userId = profile?.referral_code || `CB-${profile?.user_id?.substring(0, 8) || "0000000"}`;
+  const userEmail = profile?.email || "user@creditbuzz.com";
+  const userName = profile?.full_name || "CreditBuzz User";
   const memberSince = profile?.created_at 
     ? new Date(profile.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })
     : "January 2024";
@@ -43,7 +43,7 @@ export const ProfilePanel = ({ isOpen, onClose }: ProfilePanelProps) => {
     if (!zfcCode) return;
     try {
       await navigator.clipboard.writeText(zfcCode);
-      toast({ title: "ZFC Code Copied", description: zfcCode });
+      toast({ title: "CBC Code Copied", description: zfcCode });
     } catch {
       toast({ title: "Failed to copy", variant: "destructive" });
     }
@@ -192,7 +192,7 @@ export const ProfilePanel = ({ isOpen, onClose }: ProfilePanelProps) => {
                     <Key className="w-4 h-4 text-violet" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">ZFC Code Purchased</p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-0.5">CBC Code Purchased</p>
                     <p className="text-xs text-muted-foreground/70">
                       {zfcCodePurchasedAt ? new Date(zfcCodePurchasedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}
                     </p>

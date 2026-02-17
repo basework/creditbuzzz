@@ -39,7 +39,7 @@ const carouselImages = [carouselImage1, carouselImage2];
 
 
 const actionButtons = [
-  { icon: null, customIcon: zfcIcon, label: "Buy ZFC", color: "from-violet to-magenta", route: "/buy-zfc", animation: "pulse" as const },
+  { icon: null, customIcon: zfcIcon, label: "Buy CBC", color: "from-violet to-magenta", route: "/buy-zfc", animation: "pulse" as const },
   { icon: null, customIcon: referIcon, label: "Refer & Earn", color: "from-magenta to-gold", route: "/referral", animation: "bounce" as const },
   { icon: null, customIcon: communityIcon, label: "Community", color: "from-teal to-violet", route: "/community", animation: "float" as const },
   { icon: null, customIcon: historyIcon, label: "History", color: "from-gold to-magenta", route: "/history", animation: "glow" as const },
@@ -126,7 +126,7 @@ export const Dashboard = () => {
           const newData = payload.new as { zfc_code?: string };
           if (newData.zfc_code && newData.zfc_code !== currentZfcCode) {
             toast({
-              title: "🎉 ZFC Code Purchased!",
+              title: "🎉 CBC Code Purchased!",
               description: "Your withdrawal activation code is ready. View it in your profile.",
             });
           }
@@ -148,7 +148,7 @@ export const Dashboard = () => {
   }, [emblaApi]);
 
   useEffect(() => {
-    const onboardingComplete = localStorage.getItem("zenfi_onboarding_complete");
+    const onboardingComplete = localStorage.getItem("creditbuzz_onboarding_complete");
     if (!onboardingComplete) {
       setShowOnboarding(true);
     }
@@ -169,7 +169,7 @@ export const Dashboard = () => {
   };
 
   const handleOnboardingComplete = () => {
-    localStorage.setItem("zenfi_onboarding_complete", "true");
+    localStorage.setItem("creditbuzz_onboarding_complete", "true");
     setShowOnboarding(false);
   };
 
@@ -185,11 +185,11 @@ export const Dashboard = () => {
     
     // Also update the localStorage cache immediately so it persists across refreshes
     try {
-      const cached = localStorage.getItem("zenfi_profile_cache");
+      const cached = localStorage.getItem("creditbuzz_profile_cache");
       if (cached) {
         const cachedProfile = JSON.parse(cached);
         cachedProfile.balance = newBalance;
-        localStorage.setItem("zenfi_profile_cache", JSON.stringify(cachedProfile));
+        localStorage.setItem("creditbuzz_profile_cache", JSON.stringify(cachedProfile));
       }
     } catch (e) {
       // Ignore cache errors
@@ -252,7 +252,7 @@ export const Dashboard = () => {
       
       <ProfilePanel isOpen={showProfilePanel} onClose={() => setShowProfilePanel(false)} />
       
-      {/* Official ZenFi Warning Banner */}
+      {/* Official CreditBuzz Warning Banner */}
       <WarningBanner />
       
       {/* Compact Header */}
