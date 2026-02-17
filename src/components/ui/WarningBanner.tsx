@@ -24,7 +24,7 @@ export const WarningBanner = () => {
       <span className="text-[11px] text-foreground/90">
         <span className="text-violet font-semibold">Official ZenFi</span>
         {" — Only valid on "}
-        <span className="text-teal font-medium">www.ZenFi.com</span>
+        <span className="text-teal font-medium">www.ZenFi.online</span>
         <span className="hidden sm:inline">{". Any other version is fake and must be reported."}</span>
       </span>
     </div>

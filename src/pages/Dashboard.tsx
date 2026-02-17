@@ -168,47 +168,28 @@ export const Dashboard = () => {
     setIsClaiming(true);
     const currentBalance = Number(profile?.balance ?? 0) + claimBoost;
     
-    try {
-      // Start cooldown first (server-side persistence)
-      await startCooldown();
-      
-      // Update balance directly in profiles table
-      const { error } = await supabase
-        .from('profiles')
-        .update({ balance: currentBalance + 10000 })
-        .eq('user_id', profile.user_id);
-      
-      if (error) {
-        console.error("Claim error:", error);
-        toast({
-          title: "Claim Failed",
-          description: "Please try again",
-          variant: "destructive",
-        });
-        setIsClaiming(false);
-        return;
-      }
-      
-      // SUCCESS - optimistic UI update by adding 10k boost
-      setClaimBoost(prev => prev + 10000);
-      
-      // Save claim to database for history
-      await addClaimToDatabase(10000);
-      
-      toast({
-        title: "₦10,000 Successfully Claimed!",
-        description: "Your balance has been updated.",
+    // INSTANT UI update - no waiting
+    setClaimBoost(prev => prev + 10000);
+    
+    toast({
+      title: "₦10,000 Successfully Claimed!",
+      description: "Your balance has been updated.",
+    });
+    
+    // Fire-and-forget server sync
+    startCooldown().catch(console.error);
+    
+    supabase
+      .from('profiles')
+      .update({ balance: currentBalance + 10000 })
+      .eq('user_id', profile.user_id)
+      .then(({ error }) => {
+        if (error) console.error("Balance sync error:", error);
       });
-    } catch (error) {
-      console.error("Claim error:", error);
-      toast({
-        title: "Claim Failed",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsClaiming(false);
-    }
+    
+    addClaimToDatabase(10000).catch(console.error);
+
+    setIsClaiming(false);
   };
 
   const handleActionClick = (route?: string) => {
