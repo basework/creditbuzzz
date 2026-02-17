@@ -18,7 +18,7 @@ interface FormData {
   email: string;
 }
 
-const BUY_ZFC_STATE_KEY = "zenfi_buy_zfc_state";
+const BUY_ZFC_STATE_KEY = "creditbuzz_buy_cbc_state";
 
 interface PersistedState {
   step: FlowStep;
@@ -242,7 +242,7 @@ export const BuyZFC = () => {
           </button>
           <div className="flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-violet" />
-            <span className="text-base font-semibold text-foreground">Buy ZFC</span>
+            <span className="text-base font-semibold text-foreground">Buy CBC</span>
           </div>
           <div className="w-9" />
         </div>

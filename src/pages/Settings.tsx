@@ -45,8 +45,8 @@ export const Settings = () => {
 
   useEffect(() => {
     // Load saved preferences
-    const savedNotifications = localStorage.getItem("zenfi_notifications");
-    const savedTheme = localStorage.getItem("zenfi_theme");
+    const savedNotifications = localStorage.getItem("creditbuzz_notifications");
+    const savedTheme = localStorage.getItem("creditbuzz_theme");
     
     if (savedNotifications !== null) {
       setNotifications(savedNotifications === "true");
@@ -74,7 +74,7 @@ export const Settings = () => {
 
   const handleNotificationToggle = (checked: boolean) => {
     setNotifications(checked);
-    localStorage.setItem("zenfi_notifications", String(checked));
+    localStorage.setItem("creditbuzz_notifications", String(checked));
     toast({
       title: checked ? "Notifications Enabled" : "Notifications Disabled",
       description: checked 
@@ -85,7 +85,7 @@ export const Settings = () => {
 
   const handleThemeToggle = (checked: boolean) => {
     setDarkMode(checked);
-    localStorage.setItem("zenfi_theme", checked ? "dark" : "light");
+    localStorage.setItem("creditbuzz_theme", checked ? "dark" : "light");
     applyTheme(checked);
     toast({
       title: checked ? "Dark Mode" : "Light Mode",
@@ -131,7 +131,7 @@ export const Settings = () => {
   };
 
   const handleLogout = async () => {
-    localStorage.removeItem("zenfi_onboarding_complete");
+    localStorage.removeItem("creditbuzz_onboarding_complete");
     // Navigate first for instant feedback, sign-out runs in background
     navigate("/login");
     toast({
@@ -353,7 +353,7 @@ export const Settings = () => {
             </div>
             <div className="flex-1">
               <p className="font-semibold">App Version</p>
-              <p className="text-xs text-muted-foreground">ZenFi v1.0.0</p>
+              <p className="text-xs text-muted-foreground">CreditBuzz v1.0.0</p>
             </div>
             <span className="text-xs text-muted-foreground/60">Latest</span>
           </div>

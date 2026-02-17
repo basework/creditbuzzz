@@ -47,7 +47,7 @@ export const BannedOverlay = ({ reason }: BannedOverlayProps) => {
 
           {/* Footer */}
           <p className="text-xs text-muted-foreground/60 pt-4 border-t border-border/30">
-            🔒 ZenFi Security System
+            🔒 CreditBuzz Security System
           </p>
         </div>
       </GlassCard>

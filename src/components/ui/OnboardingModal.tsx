@@ -204,7 +204,7 @@ export const OnboardingModal = ({ onComplete }: OnboardingModalProps) => {
                     ₦130,000
                   </p>
                   <p className="text-muted-foreground text-xs mt-2">
-                    Credited to your ZenFi wallet
+                    Credited to your CreditBuzz wallet
                   </p>
                 </div>
 

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 
 // LocalStorage key for caching profile
-const PROFILE_CACHE_KEY = "zenfi_profile_cache";
+const PROFILE_CACHE_KEY = "creditbuzz_profile_cache";
 
 interface Profile {
   id: string;
