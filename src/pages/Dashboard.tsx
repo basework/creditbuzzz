@@ -12,6 +12,8 @@ import { ProfilePanel } from "@/components/ui/ProfilePanel";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
 import { BannedOverlay } from "@/components/ui/BannedOverlay";
 import { NotificationPanel } from "@/components/ui/NotificationPanel";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 import { useClaimTimer } from "@/hooks/useClaimTimer";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,7 +32,7 @@ import supportIcon from "@/assets/support-icon.png";
 import historyIcon from "@/assets/history-icon.png";
 import communityIcon from "@/assets/community-icon.png";
 
-const carouselImages = [creditbuzzLogo, creditbuzzLogo];
+const carouselImages = [creditbuzzLogo];
 
 
 
@@ -64,6 +66,7 @@ export const Dashboard = () => {
   const displayBalance = profileBalance !== null ? Number(profileBalance) + claimBoost : null;
   const isBalanceLoading = displayBalance === null;
   const { canClaim, remainingTime, startCooldown } = useClaimTimer();
+  const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 4000 })]);
   
   // Track route for persistence
   useRouteHistory();
@@ -418,35 +421,36 @@ export const Dashboard = () => {
             <h2 className="text-sm font-display font-semibold">Featured</h2>
           </div>
           
-          <div className="rounded-2xl overflow-hidden border border-violet/20 relative"
-            style={{
-              background: "linear-gradient(135deg, hsla(262, 76%, 57%, 0.08), hsla(174, 88%, 56%, 0.06))",
-            }}
-          >
-            {/* Glow orbs */}
-            <div className="absolute top-0 right-0 w-24 h-24 bg-violet/20 rounded-full blur-2xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-20 h-20 bg-teal/15 rounded-full blur-2xl pointer-events-none" />
-            
-            <div className="relative flex items-center gap-4 p-4">
-              <div className="flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden shadow-lg shadow-violet/20 border border-white/10">
-                <img 
-                  src={creditbuzzLogo} 
-                  alt="CreditBuzz"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[10px] uppercase tracking-widest text-teal font-bold">Official</span>
-                  <span className="w-1 h-1 rounded-full bg-teal/60" />
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Platform</span>
+          <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
+            <div className="flex">
+              {carouselImages.map((image, index) => (
+                <div 
+                  key={index}
+                  className="flex-[0_0_100%] min-w-0 rounded-2xl overflow-hidden relative h-36"
+                >
+                  <img 
+                    src={image} 
+                    alt={`CreditBuzz featured ad ${index + 1}`}
+                    className="w-full h-full object-cover object-center"
+                    style={{
+                      imageRendering: "auto",
+                      WebkitBackfaceVisibility: "hidden",
+                      backfaceVisibility: "hidden",
+                    }}
+                  />
+                  {/* Subtle gradient overlay */}
+                  <div 
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: "linear-gradient(180deg, transparent 50%, hsla(0, 0%, 0%, 0.35) 100%)",
+                    }}
+                  />
+                  {/* Ad label */}
+                  <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm">
+                    <span className="text-[9px] text-white/70 font-medium">Official Ad</span>
+                  </div>
                 </div>
-                <h3 className="font-display font-black text-base text-foreground leading-tight">CreditBuzz</h3>
-                <p className="text-[11px] text-muted-foreground mt-0.5">Secure · Fast · Rewarding</p>
-                <div className="flex items-center gap-1.5 mt-2">
-                  <span className="text-[10px] text-violet font-semibold">www.CreditBuzz.online</span>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
