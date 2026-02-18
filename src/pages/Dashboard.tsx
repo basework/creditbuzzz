@@ -421,28 +421,30 @@ export const Dashboard = () => {
             <h2 className="text-sm font-display font-semibold">Featured</h2>
           </div>
           
-          <div className="overflow-hidden rounded-2xl" ref={emblaRef}>
+          <div 
+            className="overflow-hidden rounded-2xl shadow-lg"
+            style={{
+              border: "1px solid hsla(262, 76%, 57%, 0.25)",
+              boxShadow: "0 8px 32px hsla(262, 76%, 57%, 0.18)",
+            }}
+            ref={emblaRef}
+          >
             <div className="flex">
               {carouselImages.map((image, index) => (
                 <div 
                   key={index}
-                  className="flex-[0_0_100%] min-w-0 rounded-2xl overflow-hidden relative h-36"
+                  className="flex-[0_0_100%] min-w-0 relative"
+                  style={{ height: "160px" }}
                 >
                   <img 
                     src={image} 
                     alt={`CreditBuzz featured ad ${index + 1}`}
-                    className="w-full h-full object-fill"
-                  />
-                  {/* Subtle gradient overlay */}
-                  <div 
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                      background: "linear-gradient(180deg, transparent 50%, hsla(0, 0%, 0%, 0.35) 100%)",
-                    }}
+                    className="w-full h-full"
+                    style={{ objectFit: "fill", display: "block" }}
                   />
                   {/* Ad label */}
-                  <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm">
-                    <span className="text-[9px] text-white/70 font-medium">Official Ad</span>
+                  <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm">
+                    <span className="text-[9px] text-white/80 font-medium tracking-wide">Official Ad</span>
                   </div>
                 </div>
               ))}
