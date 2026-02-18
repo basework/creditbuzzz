@@ -426,19 +426,12 @@ export const Dashboard = () => {
               {carouselImages.map((image, index) => (
                 <div 
                   key={index}
-                  className="flex-[0_0_100%] min-w-0 rounded-2xl overflow-hidden relative"
-                  style={{ background: "hsla(240, 7%, 8%, 0.9)" }}
+                  className="flex-[0_0_100%] min-w-0 rounded-2xl overflow-hidden relative h-36"
                 >
                   <img 
                     src={image} 
                     alt={`CreditBuzz featured ad ${index + 1}`}
-                    className="w-full object-contain object-center"
-                    style={{
-                      maxHeight: "120px",
-                      imageRendering: "auto",
-                      WebkitBackfaceVisibility: "hidden",
-                      backfaceVisibility: "hidden",
-                    }}
+                    className="w-full h-full object-fill"
                   />
                   {/* Subtle gradient overlay */}
                   <div 
