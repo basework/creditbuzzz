@@ -28,15 +28,17 @@ export const useClaimTimer = (): ClaimTimerState & {
   const getInitialState = (): ClaimTimerState => {
     const storedTimestamp = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (!storedTimestamp) {
-      return { canClaim: true, remainingTime: "00:00:00", remainingMs: 0, isLoading: true };
+      // No local data — optimistically allow claim, server will correct if needed
+      return { canClaim: true, remainingTime: "00:00:00", remainingMs: 0, isLoading: false };
     }
     const nextClaimTime = parseInt(storedTimestamp, 10);
     const remaining = nextClaimTime - Date.now();
     if (remaining <= 0) {
       localStorage.removeItem(LOCAL_STORAGE_KEY);
-      return { canClaim: true, remainingTime: "00:00:00", remainingMs: 0, isLoading: true };
+      return { canClaim: true, remainingTime: "00:00:00", remainingMs: 0, isLoading: false };
     }
-    return { canClaim: false, remainingTime: formatTimeStatic(remaining), remainingMs: remaining, isLoading: true };
+    // Has active cooldown locally — no need for server confirmation to block the button
+    return { canClaim: false, remainingTime: formatTimeStatic(remaining), remainingMs: remaining, isLoading: false };
   };
 
   const [state, setState] = useState<ClaimTimerState>(getInitialState);

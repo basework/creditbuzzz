@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Eye, EyeOff, CreditCard, Wifi, Play, Users } from "lucide-react";
+import { Eye, EyeOff, CreditCard, Wifi, Play, Users, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface VirtualBankCardProps {
@@ -9,6 +9,7 @@ interface VirtualBankCardProps {
   userId?: string;
   referralCount?: number;
   isLoading?: boolean;
+  onHistoryClick?: () => void;
 }
 
 export const VirtualBankCard = ({
@@ -18,6 +19,7 @@ export const VirtualBankCard = ({
   userId = "ZF-7829401",
   referralCount = 3,
   isLoading = false,
+  onHistoryClick,
 }: VirtualBankCardProps) => {
   const [isHidden, setIsHidden] = useState(false);
   const [displayBalance, setDisplayBalance] = useState(balance);
@@ -112,6 +114,16 @@ export const VirtualBankCard = ({
             <Play className="w-3 h-3 text-violet fill-violet" />
             <span className="text-[9px] font-medium text-violet">Watch</span>
           </button>
+          {/* History Button */}
+          {onHistoryClick && (
+            <button
+              onClick={onHistoryClick}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-teal/20 hover:bg-teal/30 active:scale-95 transition-all duration-200"
+            >
+              <Clock className="w-3 h-3 text-teal" />
+              <span className="text-[9px] font-medium text-teal">History</span>
+            </button>
+          )}
           <span className="text-xs font-bold tracking-wider gradient-text">
             CREDITBUZZ
           </span>
