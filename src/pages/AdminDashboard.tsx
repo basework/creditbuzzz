@@ -80,6 +80,8 @@ export const AdminDashboard = () => {
     rejectedPayments: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [withdrawalMode, setWithdrawalMode] = useState<"weekly" | "daily">("weekly");
+  const [isTogglingMode, setIsTogglingMode] = useState(false);
 
   // Banned users management state (messaging-style layout)
   const [banSearchQuery, setBanSearchQuery] = useState("");
@@ -113,6 +115,14 @@ export const AdminDashboard = () => {
       const rejectedPayments = paymentsData?.filter((p) => p.status === "rejected").length || 0;
 
       setStats({ totalUsers, bannedUsers, approvedPayments, rejectedPayments });
+
+      // Fetch withdrawal mode
+      const { data: setting } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "withdrawal_mode")
+        .single();
+      if (setting) setWithdrawalMode(setting.value as "weekly" | "daily");
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast({ title: "Error", description: "Failed to fetch data", variant: "destructive" });
@@ -151,6 +161,24 @@ export const AdminDashboard = () => {
       supabase.removeChannel(paymentsChannel);
     };
   }, [isAdmin, fetchData]);
+
+  const handleToggleWithdrawalMode = async () => {
+    setIsTogglingMode(true);
+    const newMode = withdrawalMode === "weekly" ? "daily" : "weekly";
+    try {
+      const { error } = await supabase
+        .from("app_settings")
+        .update({ value: newMode, updated_at: new Date().toISOString() })
+        .eq("key", "withdrawal_mode");
+      if (error) throw error;
+      setWithdrawalMode(newMode);
+      toast({ title: "Updated", description: `Withdrawal mode set to ${newMode}` });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsTogglingMode(false);
+    }
+  };
 
   const handleStatCardClick = (view: SubView) => {
     if (view === "all-users" || view === "banned-users") {
@@ -310,6 +338,34 @@ export const AdminDashboard = () => {
               <StatCard title="Rejected Payments" value={stats.rejectedPayments} icon={XCircle} color="gold" delay={0.3}
                 onClick={() => handleStatCardClick("rejected-payments")} />
             </div>
+
+            {/* Withdrawal Mode Toggle */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="p-5 rounded-2xl bg-secondary/30 border border-border/40"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Withdrawal Access</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {withdrawalMode === "weekly" ? "Weekend only (Fri–Sun)" : "Open every day"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-semibold ${withdrawalMode === "weekly" ? "text-violet" : "text-muted-foreground"}`}>Weekly</span>
+                  <button
+                    onClick={handleToggleWithdrawalMode}
+                    disabled={isTogglingMode}
+                    className={`relative w-12 h-7 rounded-full transition-colors duration-300 ${withdrawalMode === "daily" ? "bg-teal" : "bg-secondary"}`}
+                  >
+                    <span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300 ${withdrawalMode === "daily" ? "translate-x-6" : "translate-x-1"}`} />
+                  </button>
+                  <span className={`text-xs font-semibold ${withdrawalMode === "daily" ? "text-teal" : "text-muted-foreground"}`}>Daily</span>
+                </div>
+              </div>
+            </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 20 }}
