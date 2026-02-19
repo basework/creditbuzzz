@@ -346,22 +346,15 @@ export const Dashboard = () => {
       </header>
 
       <main className="relative z-0 px-4 space-y-4">
-        {/* Balance Card + History Button */}
-        <div className="relative animate-fade-in-up">
+        {/* Balance Card with History button inside */}
+        <div className="animate-fade-in-up">
           <VirtualBankCard 
             balance={isBalanceLoading ? 0 : displayBalance} 
             cardNumber="4829" 
             className="min-h-[110px]"
             isLoading={isBalanceLoading}
+            onHistoryClick={() => { fetchRecentTransactions(); setShowHistorySheet(true); }}
           />
-          {/* Small History Button on top-right of balance card */}
-          <button
-            onClick={() => { fetchRecentTransactions(); setShowHistorySheet(true); }}
-            className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-sm hover:bg-black/60 active:scale-95 transition-all duration-200 z-10"
-          >
-            <img src={historyIcon} alt="History" className="w-3 h-3 rounded-full" />
-            <span className="text-[9px] font-semibold text-white/90">History</span>
-          </button>
         </div>
 
         {/* Primary Action Buttons - More Compact */}
