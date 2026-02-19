@@ -312,179 +312,146 @@ export const History = () => {
           </div>
         </GlassCard>
 
-        {/* Transaction List */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-display font-semibold">Recent Activity</h2>
-            <span className="text-[10px] text-muted-foreground">Encrypted logs</span>
-          </div>
-
-          {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div 
-                  key={i} 
-                  className="glass-card p-4 animate-pulse"
-                  style={{ animationDelay: `${i * 0.1}s` }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-muted" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 bg-muted rounded w-24" />
-                      <div className="h-3 bg-muted rounded w-16" />
-                    </div>
-                    <div className="h-5 bg-muted rounded w-20" />
-                  </div>
-                </div>
-              ))}
+        {/* Two-column layout: Transactions + Tasks side panel */}
+        <div className="flex gap-3 items-start">
+          
+          {/* Transaction List */}
+          <div className="flex-1 min-w-0 space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-sm font-display font-semibold">Recent Activity</h2>
+              <span className="text-[10px] text-muted-foreground">Encrypted</span>
             </div>
-          ) : transactions.length === 0 ? (
-            <GlassCard className="p-8 text-center animate-fade-in-up">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-secondary/50 flex items-center justify-center">
-                <Clock className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h3 className="font-display font-semibold mb-2">No Transactions Yet</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Your transaction history will appear here after your first claim or withdrawal.
-              </p>
-              <button
-                onClick={() => navigate("/dashboard")}
-                className="px-4 py-2 rounded-xl bg-violet/20 text-violet text-sm font-medium hover:bg-violet/30 transition-colors"
-              >
-                Go to Dashboard
-              </button>
-            </GlassCard>
-          ) : (
-            <div className="space-y-2">
-              {transactions.map((txn, index) => (
-                <div
-                  key={txn.id}
-                  className="glass-card p-4 flex items-center gap-3 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer animate-fade-in-up"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  {/* Transaction Icon */}
-                  <div 
-                    className={`p-2.5 rounded-xl ${
-                      txn.type === "claim" 
-                        ? "bg-teal/20" 
-                        : "bg-magenta/20"
-                    }`}
-                  >
-                    {txn.type === "claim" ? (
-                      <ArrowDownCircle className="w-5 h-5 text-teal" />
-                    ) : (
-                      <ArrowUpCircle className="w-5 h-5 text-magenta" />
-                    )}
-                  </div>
 
-                  {/* Transaction Details */}
-                  <div className="flex-1 min-w-0">
+            {isLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="glass-card p-3 animate-pulse">
                     <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm">
-                        {txn.type === "claim" ? "Daily Claim" : "Withdrawal"}
-                      </p>
-                      <span 
-                        className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
-                          txn.type === "withdraw"
-                            ? "bg-magenta/20 text-magenta"
-                            : txn.status === "success" 
-                            ? "bg-teal/20 text-teal" 
-                            : txn.status === "pending"
-                            ? "bg-gold/20 text-gold"
-                            : "bg-magenta/20 text-magenta"
-                        }`}
-                      >
-                        {getStatusLabel(txn.status, txn.type)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(txn.date)} • {formatTime(txn.date)}
-                    </p>
-                  </div>
-
-                  {/* Amount */}
-                  <div className="text-right">
-                    <p 
-                      className={`font-display font-semibold ${
-                        txn.type === "claim" ? "text-teal" : "text-foreground"
-                      }`}
-                    >
-                      {txn.type === "claim" ? "+" : "-"}{formatAmount(txn.amount)}
-                    </p>
-                    <div className="flex items-center justify-end gap-1 mt-0.5">
-                      {getStatusIcon(txn.status)}
+                      <div className="w-8 h-8 rounded-xl bg-muted" />
+                      <div className="flex-1 space-y-1.5">
+                        <div className="h-3 bg-muted rounded w-20" />
+                        <div className="h-2.5 bg-muted rounded w-14" />
+                      </div>
+                      <div className="h-4 bg-muted rounded w-16" />
                     </div>
                   </div>
+                ))}
+              </div>
+            ) : transactions.length === 0 ? (
+              <GlassCard className="p-6 text-center animate-fade-in-up">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-secondary/50 flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-muted-foreground" />
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Earn More Tasks Section */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-display font-semibold">Earn More Tasks</h2>
-            <span className="text-[10px] text-gold font-semibold animate-pulse">🔥 Live</span>
+                <h3 className="font-display font-semibold text-sm mb-1">No Transactions Yet</h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                  History will appear after your first claim or withdrawal.
+                </p>
+                <button
+                  onClick={() => navigate("/dashboard")}
+                  className="px-3 py-1.5 rounded-xl bg-violet/20 text-violet text-xs font-medium hover:bg-violet/30 transition-colors"
+                >
+                  Go to Dashboard
+                </button>
+              </GlassCard>
+            ) : (
+              <div className="space-y-2">
+                {transactions.map((txn, index) => (
+                  <div
+                    key={txn.id}
+                    className="glass-card p-3 flex items-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer animate-fade-in-up"
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <div className={`p-2 rounded-xl flex-shrink-0 ${txn.type === "claim" ? "bg-teal/20" : "bg-magenta/20"}`}>
+                      {txn.type === "claim" ? (
+                        <ArrowDownCircle className="w-4 h-4 text-teal" />
+                      ) : (
+                        <ArrowUpCircle className="w-4 h-4 text-magenta" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-medium text-xs">{txn.type === "claim" ? "Daily Claim" : "Withdrawal"}</p>
+                        <span className={`px-1 py-0.5 rounded text-[8px] font-medium ${
+                          txn.type === "withdraw" ? "bg-magenta/20 text-magenta"
+                          : txn.status === "success" ? "bg-teal/20 text-teal"
+                          : txn.status === "pending" ? "bg-gold/20 text-gold"
+                          : "bg-magenta/20 text-magenta"
+                        }`}>
+                          {getStatusLabel(txn.status, txn.type)}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">{formatDate(txn.date)}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className={`font-display font-semibold text-xs ${txn.type === "claim" ? "text-teal" : "text-foreground"}`}>
+                        {txn.type === "claim" ? "+" : "-"}{formatAmount(txn.amount)}
+                      </p>
+                      <div className="flex items-center justify-end mt-0.5">{getStatusIcon(txn.status)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {surveyTasks.map((task, index) => (
-            <motion.a
-              key={task.id}
-              href={task.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.12, type: "spring", stiffness: 120 }}
-              whileTap={{ scale: 0.97 }}
-              className="glass-card p-4 flex items-center gap-3 cursor-pointer relative overflow-hidden"
-              style={{
-                background: `linear-gradient(135deg, ${task.bgFrom}, ${task.bgTo})`,
-                border: `1px solid ${task.borderColor}`,
-              }}
-            >
-              {/* Icon */}
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: task.iconBg }}
-              >
-                <task.icon className="w-5 h-5 text-white" />
-              </div>
+          {/* Tasks Side Panel */}
+          <div className="w-[128px] flex-shrink-0 space-y-2">
+            <div className="flex items-center gap-1 px-0.5">
+              <h2 className="text-[11px] font-display font-semibold">Earn More</h2>
+              <span className="text-[9px] text-gold font-bold animate-pulse">🔥</span>
+            </div>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <p className="font-semibold text-sm text-foreground truncate">{task.title}</p>
-                  <span
-                    className="px-1.5 py-0.5 rounded-full text-[9px] font-bold flex-shrink-0"
-                    style={{ background: task.badgeBg, color: task.badgeColor }}
-                  >
-                    {task.badge}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">{task.description}</p>
-              </div>
-
-              {/* Arrow + Reward */}
-              <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                <span className="text-xs font-bold text-gold">{task.reward}</span>
-                <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
-              </div>
-
-              {/* Animated shimmer on active */}
-              <motion.div
-                className="absolute inset-0 rounded-xl pointer-events-none"
-                animate={{ opacity: [0, 0.06, 0] }}
-                transition={{ duration: 2.5, repeat: Infinity, delay: index * 0.4 }}
-                style={{ background: "linear-gradient(90deg, transparent, white, transparent)" }}
-              />
-            </motion.a>
-          ))}
+            <div className="space-y-2">
+              {surveyTasks.map((task, index) => (
+                <motion.a
+                  key={task.id}
+                  href={task.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1, type: "spring", stiffness: 140 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="glass-card p-2.5 flex flex-col gap-1.5 cursor-pointer relative overflow-hidden"
+                  style={{
+                    background: `linear-gradient(135deg, ${task.bgFrom}, ${task.bgTo})`,
+                    border: `1px solid ${task.borderColor}`,
+                    display: "flex",
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div
+                      className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: task.iconBg }}
+                    >
+                      <task.icon className="w-3.5 h-3.5 text-white" />
+                    </div>
+                    <span
+                      className="px-1 py-0.5 rounded-full text-[8px] font-bold"
+                      style={{ background: task.badgeBg, color: task.badgeColor }}
+                    >
+                      {task.badge}
+                    </span>
+                  </div>
+                  <p className="font-semibold text-[10px] text-foreground leading-tight line-clamp-2">{task.title}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-gold">{task.reward}</span>
+                    <ExternalLink className="w-2.5 h-2.5 text-muted-foreground" />
+                  </div>
+                  <motion.div
+                    className="absolute inset-0 rounded-xl pointer-events-none"
+                    animate={{ opacity: [0, 0.06, 0] }}
+                    transition={{ duration: 2.5, repeat: Infinity, delay: index * 0.4 }}
+                    style={{ background: "linear-gradient(90deg, transparent, white, transparent)" }}
+                  />
+                </motion.a>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Security Footer */}
-        <div className="text-center pt-4 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
+        <div className="text-center pt-2 animate-fade-in-up">
           <p className="text-[10px] text-muted-foreground/50">
             🔒 All transactions are encrypted and secured
           </p>
@@ -493,3 +460,4 @@ export const History = () => {
     </div>
   );
 };
+
