@@ -104,8 +104,9 @@ export const Dashboard = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProfilePanel, setShowProfilePanel] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
-  const [showTasksPanel, setShowTasksPanel] = useState(false);
-  const [recentClaims, setRecentClaims] = useState<{id: string; amount: number; date: string; status: string}[]>([]);
+  const [showTasksSheet, setShowTasksSheet] = useState(false);
+  const [showHistorySheet, setShowHistorySheet] = useState(false);
+  const [recentTransactions, setRecentTransactions] = useState<{id: string; amount: number; date: string; status: string; type: string}[]>([]);
   const [claimsLoading, setClaimsLoading] = useState(false);
   // Only used for optimistic claim updates - starts null, set after a claim
   const [claimBoost, setClaimBoost] = useState(0);
@@ -192,9 +193,9 @@ export const Dashboard = () => {
     }
   }, []);
 
-  // Fetch recent claims for history panel on mount
+  // Fetch recent transactions for history sheet on mount
   useEffect(() => {
-    if (user?.id) fetchRecentClaims();
+    if (user?.id) fetchRecentTransactions();
   }, [user?.id]);
 
   const addClaimToDatabase = async (amount: number) => {
@@ -272,20 +273,26 @@ export const Dashboard = () => {
     setIsClaiming(false);
   };
 
-  const fetchRecentClaims = async () => {
+  const fetchRecentTransactions = async () => {
     if (!user?.id) return;
     setClaimsLoading(true);
     try {
-      const { data } = await supabase.from("claims").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10);
-      setRecentClaims((data || []).map(c => ({ id: c.id, amount: c.amount, date: c.created_at, status: c.status })));
+      const [{ data: claims }, { data: withdrawals }] = await Promise.all([
+        supabase.from("claims").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(8),
+        supabase.from("withdrawals").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(8),
+      ]);
+      const all = [
+        ...(claims || []).map(c => ({ id: c.id, amount: c.amount, date: c.created_at, status: c.status, type: "claim" })),
+        ...(withdrawals || []).map(w => ({ id: w.id, amount: w.amount, date: w.created_at, status: w.status, type: "withdraw" })),
+      ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 12);
+      setRecentTransactions(all);
     } catch (e) { console.error(e); }
     finally { setClaimsLoading(false); }
   };
 
   const handleActionClick = (route?: string, external?: boolean) => {
     if (route === "tasks") {
-      if (!showTasksPanel) fetchRecentClaims();
-      setShowTasksPanel(prev => !prev);
+      setShowTasksSheet(true);
       return;
     }
     if (route) {
@@ -339,42 +346,22 @@ export const Dashboard = () => {
       </header>
 
       <main className="relative z-0 px-4 space-y-4">
-        {/* Balance Card + History Side Panel */}
-        <div className="flex gap-2 items-start animate-fade-in-up">
-          <div className="flex-1 min-w-0">
-            <VirtualBankCard 
-              balance={isBalanceLoading ? 0 : displayBalance} 
-              cardNumber="4829" 
-              className="min-h-[110px]"
-              isLoading={isBalanceLoading}
-            />
-          </div>
-          {/* History Side Panel */}
-          <div className="w-[108px] flex-shrink-0 glass-card p-2 flex flex-col gap-1.5" style={{ minHeight: "110px" }}>
-            <div className="flex items-center gap-1">
-              <img src={historyIcon} alt="History" className="w-3.5 h-3.5 rounded-full" />
-              <span className="text-[9px] font-display font-semibold text-foreground">History</span>
-            </div>
-            {claimsLoading ? (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="w-3 h-3 border border-violet border-t-transparent rounded-full animate-spin" />
-              </div>
-            ) : recentClaims.length === 0 ? (
-              <p className="text-[8px] text-muted-foreground text-center mt-2">No activity yet</p>
-            ) : (
-              <div className="space-y-1 overflow-hidden flex-1">
-                {recentClaims.slice(0, 4).map((c) => (
-                  <div key={c.id} className="flex items-center justify-between">
-                    <span className="text-[8px] text-teal font-medium">+₦{Number(c.amount).toLocaleString()}</span>
-                    <span className="text-[7px] text-muted-foreground">{new Date(c.date).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <button onClick={() => navigate("/history")} className="text-[8px] text-violet font-medium text-center mt-auto hover:text-violet/80 transition-colors">
-              View all →
-            </button>
-          </div>
+        {/* Balance Card + History Button */}
+        <div className="relative animate-fade-in-up">
+          <VirtualBankCard 
+            balance={isBalanceLoading ? 0 : displayBalance} 
+            cardNumber="4829" 
+            className="min-h-[110px]"
+            isLoading={isBalanceLoading}
+          />
+          {/* Small History Button on top-right of balance card */}
+          <button
+            onClick={() => { fetchRecentTransactions(); setShowHistorySheet(true); }}
+            className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-sm hover:bg-black/60 active:scale-95 transition-all duration-200 z-10"
+          >
+            <img src={historyIcon} alt="History" className="w-3 h-3 rounded-full" />
+            <span className="text-[9px] font-semibold text-white/90">History</span>
+          </button>
         </div>
 
         {/* Primary Action Buttons - More Compact */}
@@ -505,49 +492,6 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* Tasks Panel - shown when Tasks button is clicked */}
-        {showTasksPanel && (
-          <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-sm font-display font-semibold">Earn More Tasks</h2>
-              <span className="text-[10px] text-gold font-semibold animate-pulse">🔥 Live</span>
-            </div>
-            <div className="space-y-2">
-              {surveyTasks.map((task, index) => (
-                <a
-                  key={task.id}
-                  href={task.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="glass-card p-3 flex items-center gap-3 cursor-pointer relative overflow-hidden hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 animate-fade-in-up"
-                  style={{
-                    background: `linear-gradient(135deg, ${task.bgFrom}, ${task.bgTo})`,
-                    border: `1px solid ${task.borderColor}`,
-                    animationDelay: `${0.05 + index * 0.05}s`,
-                    display: "flex",
-                  }}
-                >
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: task.iconBg }}>
-                    <task.icon className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <p className="font-semibold text-xs text-foreground truncate">{task.title}</p>
-                      <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold flex-shrink-0" style={{ background: task.badgeBg, color: task.badgeColor }}>
-                        {task.badge}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground truncate">{task.description}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <span className="text-xs font-bold text-gold">{task.reward}</span>
-                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Bottom Carousel - Auto-sliding */}
         <div 
@@ -596,6 +540,123 @@ export const Dashboard = () => {
           </p>
         </div>
       </main>
+
+      {/* ── TASKS SHEET ── */}
+      {showTasksSheet && (
+        <div className="fixed inset-0 z-50 flex flex-col">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowTasksSheet(false)} />
+          <div
+            className="relative mt-auto w-full rounded-t-2xl overflow-hidden flex flex-col animate-fade-in-up"
+            style={{ maxHeight: "88vh", background: "hsl(var(--background))" }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+              <div>
+                <h2 className="text-base font-display font-bold">Earn More Tasks</h2>
+                <p className="text-[10px] text-muted-foreground">Complete tasks & earn rewards</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-gold font-bold animate-pulse">🔥 Live</span>
+                <button onClick={() => setShowTasksSheet(false)} className="p-2 rounded-xl bg-secondary hover:bg-muted transition-colors">
+                  <span className="text-muted-foreground text-sm font-bold">✕</span>
+                </button>
+              </div>
+            </div>
+            {/* Tasks list */}
+            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-2">
+              {surveyTasks.map((task, index) => (
+                <a
+                  key={task.id}
+                  href={task.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="glass-card p-3 flex items-center gap-3 cursor-pointer relative overflow-hidden hover:scale-[1.01] active:scale-[0.98] transition-all duration-200"
+                  style={{ background: `linear-gradient(135deg, ${task.bgFrom}, ${task.bgTo})`, border: `1px solid ${task.borderColor}`, display: "flex" }}
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: task.iconBg }}>
+                    <task.icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <p className="font-semibold text-sm text-foreground truncate">{task.title}</p>
+                      <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold flex-shrink-0" style={{ background: task.badgeBg, color: task.badgeColor }}>{task.badge}</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{task.description}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <span className="text-sm font-bold text-gold">{task.reward}</span>
+                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── HISTORY SHEET ── */}
+      {showHistorySheet && (
+        <div className="fixed inset-0 z-50 flex flex-col">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowHistorySheet(false)} />
+          <div
+            className="relative mt-auto w-full rounded-t-2xl overflow-hidden flex flex-col animate-fade-in-up"
+            style={{ maxHeight: "88vh", background: "hsl(var(--background))" }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+              <div>
+                <h2 className="text-base font-display font-bold">Transaction History</h2>
+                <p className="text-[10px] text-muted-foreground">{recentTransactions.length} recent transactions</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => { setShowHistorySheet(false); navigate("/history"); }} className="text-[11px] text-violet font-semibold px-2 py-1 rounded-lg bg-violet/10 hover:bg-violet/20 transition-colors">
+                  View All
+                </button>
+                <button onClick={() => setShowHistorySheet(false)} className="p-2 rounded-xl bg-secondary hover:bg-muted transition-colors">
+                  <span className="text-muted-foreground text-sm font-bold">✕</span>
+                </button>
+              </div>
+            </div>
+            {/* Transactions list */}
+            <div className="overflow-y-auto flex-1 px-4 py-3 space-y-2">
+              {claimsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-5 h-5 border-2 border-violet border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : recentTransactions.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-sm text-muted-foreground">No transactions yet</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">Claim your first reward on the dashboard</p>
+                </div>
+              ) : (
+                recentTransactions.map((txn, i) => (
+                  <div key={txn.id} className="glass-card p-3 flex items-center gap-3 animate-fade-in-up" style={{ animationDelay: `${i * 0.04}s` }}>
+                    <div className={`p-2 rounded-xl flex-shrink-0 ${txn.type === "claim" ? "bg-teal/20" : "bg-magenta/20"}`}>
+                      {txn.type === "claim" ? (
+                        <svg className="w-4 h-4 text-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                      ) : (
+                        <svg className="w-4 h-4 text-magenta" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-xs">{txn.type === "claim" ? "Daily Claim" : "Withdrawal"}</p>
+                      <p className="text-[10px] text-muted-foreground">{new Date(txn.date).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-display font-bold text-sm ${txn.type === "claim" ? "text-teal" : "text-foreground"}`}>
+                        {txn.type === "claim" ? "+" : "-"}₦{Number(txn.amount).toLocaleString()}
+                      </p>
+                      <span className={`text-[9px] font-medium ${txn.status === "success" ? "text-teal" : txn.status === "pending" ? "text-gold" : "text-magenta"}`}>
+                        {txn.status === "success" ? "Completed" : txn.status === "pending" ? "Pending" : "Failed"}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
