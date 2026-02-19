@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { ZenfiLogo } from "@/components/ui/ZenfiLogo";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { FloatingParticles } from "@/components/ui/FloatingParticles";
@@ -15,13 +14,8 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  ExternalLink,
-  Star,
-  Coins,
-  Users,
-  Sparkles,
-  TrendingUp,
 } from "lucide-react";
+
 
 interface Transaction {
   id: string;
@@ -30,84 +24,6 @@ interface Transaction {
   date: string;
   status: "success" | "pending" | "failed";
 }
-
-const surveyTasks = [
-  {
-    id: 1,
-    title: "Join Site Survey",
-    description: "Complete a quick site survey & earn rewards",
-    link: "https://helpinghands.money",
-    reward: "+₦5,000",
-    badge: "HOT",
-    icon: Star,
-    iconBg: "linear-gradient(135deg, hsl(45, 100%, 51%), hsl(25, 100%, 55%))",
-    bgFrom: "hsla(45, 100%, 51%, 0.06)",
-    bgTo: "hsla(262, 76%, 57%, 0.04)",
-    borderColor: "hsla(45, 100%, 51%, 0.2)",
-    badgeBg: "hsla(45, 100%, 51%, 0.2)",
-    badgeColor: "hsl(45, 100%, 51%)",
-  },
-  {
-    id: 2,
-    title: "Referral Bonus Survey",
-    description: "Answer referral questions & get paid instantly",
-    link: "https://helpinghands.money",
-    reward: "+₦3,500",
-    badge: "NEW",
-    icon: Users,
-    iconBg: "linear-gradient(135deg, hsl(289, 100%, 65%), hsl(262, 76%, 57%))",
-    bgFrom: "hsla(289, 100%, 65%, 0.06)",
-    bgTo: "hsla(262, 76%, 57%, 0.04)",
-    borderColor: "hsla(289, 100%, 65%, 0.2)",
-    badgeBg: "hsla(289, 100%, 65%, 0.2)",
-    badgeColor: "hsl(289, 100%, 65%)",
-  },
-  {
-    id: 3,
-    title: "Earnings Growth Task",
-    description: "Help us improve & unlock extra earnings",
-    link: "https://helpinghands.money",
-    reward: "+₦4,000",
-    badge: "EARN",
-    icon: TrendingUp,
-    iconBg: "linear-gradient(135deg, hsl(174, 88%, 56%), hsl(174, 70%, 40%))",
-    bgFrom: "hsla(174, 88%, 56%, 0.06)",
-    bgTo: "hsla(262, 76%, 57%, 0.04)",
-    borderColor: "hsla(174, 88%, 56%, 0.2)",
-    badgeBg: "hsla(174, 88%, 56%, 0.2)",
-    badgeColor: "hsl(174, 88%, 56%)",
-  },
-  {
-    id: 4,
-    title: "Community Feedback",
-    description: "Share your experience and earn bonus credits",
-    link: "https://helpinghands.money",
-    reward: "+₦2,500",
-    badge: "EASY",
-    icon: Sparkles,
-    iconBg: "linear-gradient(135deg, hsl(262, 76%, 57%), hsl(174, 88%, 56%))",
-    bgFrom: "hsla(262, 76%, 57%, 0.06)",
-    bgTo: "hsla(174, 88%, 56%, 0.04)",
-    borderColor: "hsla(262, 76%, 57%, 0.2)",
-    badgeBg: "hsla(262, 76%, 57%, 0.2)",
-    badgeColor: "hsl(262, 76%, 57%)",
-  },
-  {
-    id: 5,
-    title: "Daily Reward Survey",
-    description: "Daily task — complete & collect your coins",
-    link: "https://helpinghands.money",
-    reward: "+₦6,000",
-    badge: "DAILY",
-    icon: Coins,
-    iconBg: "linear-gradient(135deg, hsl(35, 100%, 55%), hsl(45, 100%, 51%))",
-    bgFrom: "hsla(35, 100%, 55%, 0.06)",
-    bgTo: "hsla(45, 100%, 51%, 0.04)",
-    borderColor: "hsla(35, 100%, 55%, 0.2)",
-    badgeBg: "hsla(35, 100%, 55%, 0.2)",
-    badgeColor: "hsl(35, 100%, 55%)",
-  },
-];
 
 export const History = () => {
   const navigate = useNavigate();
@@ -312,142 +228,83 @@ export const History = () => {
           </div>
         </GlassCard>
 
-        {/* Two-column layout: Transactions + Tasks side panel */}
-        <div className="flex gap-3 items-start">
-          
-          {/* Transaction List */}
-          <div className="flex-1 min-w-0 space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-sm font-display font-semibold">Recent Activity</h2>
-              <span className="text-[10px] text-muted-foreground">Encrypted</span>
-            </div>
-
-            {isLoading ? (
-              <div className="space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="glass-card p-3 animate-pulse">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-muted" />
-                      <div className="flex-1 space-y-1.5">
-                        <div className="h-3 bg-muted rounded w-20" />
-                        <div className="h-2.5 bg-muted rounded w-14" />
-                      </div>
-                      <div className="h-4 bg-muted rounded w-16" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : transactions.length === 0 ? (
-              <GlassCard className="p-6 text-center animate-fade-in-up">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-secondary/50 flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-muted-foreground" />
-                </div>
-                <h3 className="font-display font-semibold text-sm mb-1">No Transactions Yet</h3>
-                <p className="text-xs text-muted-foreground mb-3">
-                  History will appear after your first claim or withdrawal.
-                </p>
-                <button
-                  onClick={() => navigate("/dashboard")}
-                  className="px-3 py-1.5 rounded-xl bg-violet/20 text-violet text-xs font-medium hover:bg-violet/30 transition-colors"
-                >
-                  Go to Dashboard
-                </button>
-              </GlassCard>
-            ) : (
-              <div className="space-y-2">
-                {transactions.map((txn, index) => (
-                  <div
-                    key={txn.id}
-                    className="glass-card p-3 flex items-center gap-2 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer animate-fade-in-up"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <div className={`p-2 rounded-xl flex-shrink-0 ${txn.type === "claim" ? "bg-teal/20" : "bg-magenta/20"}`}>
-                      {txn.type === "claim" ? (
-                        <ArrowDownCircle className="w-4 h-4 text-teal" />
-                      ) : (
-                        <ArrowUpCircle className="w-4 h-4 text-magenta" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <p className="font-medium text-xs">{txn.type === "claim" ? "Daily Claim" : "Withdrawal"}</p>
-                        <span className={`px-1 py-0.5 rounded text-[8px] font-medium ${
-                          txn.type === "withdraw" ? "bg-magenta/20 text-magenta"
-                          : txn.status === "success" ? "bg-teal/20 text-teal"
-                          : txn.status === "pending" ? "bg-gold/20 text-gold"
-                          : "bg-magenta/20 text-magenta"
-                        }`}>
-                          {getStatusLabel(txn.status, txn.type)}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground">{formatDate(txn.date)}</p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className={`font-display font-semibold text-xs ${txn.type === "claim" ? "text-teal" : "text-foreground"}`}>
-                        {txn.type === "claim" ? "+" : "-"}{formatAmount(txn.amount)}
-                      </p>
-                      <div className="flex items-center justify-end mt-0.5">{getStatusIcon(txn.status)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+        {/* Transaction List - full width */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-sm font-display font-semibold">Recent Activity</h2>
+            <span className="text-[10px] text-muted-foreground">Encrypted</span>
           </div>
 
-          {/* Tasks Side Panel */}
-          <div className="w-[128px] flex-shrink-0 space-y-2">
-            <div className="flex items-center gap-1 px-0.5">
-              <h2 className="text-[11px] font-display font-semibold">Earn More</h2>
-              <span className="text-[9px] text-gold font-bold animate-pulse">🔥</span>
-            </div>
-
+          {isLoading ? (
             <div className="space-y-2">
-              {surveyTasks.map((task, index) => (
-                <motion.a
-                  key={task.id}
-                  href={task.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1, type: "spring", stiffness: 140 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="glass-card p-2.5 flex flex-col gap-1.5 cursor-pointer relative overflow-hidden"
-                  style={{
-                    background: `linear-gradient(135deg, ${task.bgFrom}, ${task.bgTo})`,
-                    border: `1px solid ${task.borderColor}`,
-                    display: "flex",
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: task.iconBg }}
-                    >
-                      <task.icon className="w-3.5 h-3.5 text-white" />
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="glass-card p-3 animate-pulse">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-muted" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-3 bg-muted rounded w-20" />
+                      <div className="h-2.5 bg-muted rounded w-14" />
                     </div>
-                    <span
-                      className="px-1 py-0.5 rounded-full text-[8px] font-bold"
-                      style={{ background: task.badgeBg, color: task.badgeColor }}
-                    >
-                      {task.badge}
-                    </span>
+                    <div className="h-4 bg-muted rounded w-16" />
                   </div>
-                  <p className="font-semibold text-[10px] text-foreground leading-tight line-clamp-2">{task.title}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-gold">{task.reward}</span>
-                    <ExternalLink className="w-2.5 h-2.5 text-muted-foreground" />
-                  </div>
-                  <motion.div
-                    className="absolute inset-0 rounded-xl pointer-events-none"
-                    animate={{ opacity: [0, 0.06, 0] }}
-                    transition={{ duration: 2.5, repeat: Infinity, delay: index * 0.4 }}
-                    style={{ background: "linear-gradient(90deg, transparent, white, transparent)" }}
-                  />
-                </motion.a>
+                </div>
               ))}
             </div>
-          </div>
+          ) : transactions.length === 0 ? (
+            <GlassCard className="p-6 text-center animate-fade-in-up">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-secondary/50 flex items-center justify-center">
+                <Clock className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <h3 className="font-display font-semibold text-sm mb-1">No Transactions Yet</h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                History will appear after your first claim or withdrawal.
+              </p>
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="px-3 py-1.5 rounded-xl bg-violet/20 text-violet text-xs font-medium hover:bg-violet/30 transition-colors"
+              >
+                Go to Dashboard
+              </button>
+            </GlassCard>
+          ) : (
+            <div className="space-y-2">
+              {transactions.map((txn, index) => (
+                <div
+                  key={txn.id}
+                  className="glass-card p-3 flex items-center gap-3 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 cursor-pointer animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <div className={`p-2 rounded-xl flex-shrink-0 ${txn.type === "claim" ? "bg-teal/20" : "bg-magenta/20"}`}>
+                    {txn.type === "claim" ? (
+                      <ArrowDownCircle className="w-5 h-5 text-teal" />
+                    ) : (
+                      <ArrowUpCircle className="w-5 h-5 text-magenta" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium text-sm">{txn.type === "claim" ? "Daily Claim" : "Withdrawal"}</p>
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
+                        txn.type === "withdraw" ? "bg-magenta/20 text-magenta"
+                        : txn.status === "success" ? "bg-teal/20 text-teal"
+                        : txn.status === "pending" ? "bg-gold/20 text-gold"
+                        : "bg-magenta/20 text-magenta"
+                      }`}>
+                        {getStatusLabel(txn.status, txn.type)}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{formatDate(txn.date)} · {formatTime(txn.date)}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className={`font-display font-bold text-sm ${txn.type === "claim" ? "text-teal" : "text-foreground"}`}>
+                      {txn.type === "claim" ? "+" : "-"}{formatAmount(txn.amount)}
+                    </p>
+                    <div className="flex items-center justify-end mt-0.5">{getStatusIcon(txn.status)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Security Footer */}

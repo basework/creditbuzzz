@@ -32,13 +32,15 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import creditbuzzLogo from "@/assets/creditbuzz-logo.jpg";
+import carousel3 from "@/assets/carousel-3.jpeg";
+import carousel4 from "@/assets/carousel-4.jpeg";
 import zfcIcon from "@/assets/zfc-icon.png";
 import referIcon from "@/assets/refer-icon.png";
 import supportIcon from "@/assets/support-icon.png";
 import historyIcon from "@/assets/history-icon.png";
 import communityIcon from "@/assets/community-icon.png";
 
-const carouselImages = [creditbuzzLogo];
+const carouselImages = [creditbuzzLogo, carousel3, carousel4];
 
 
 
@@ -82,7 +84,7 @@ const surveyTasks = [
 
 const actionButtons = [
   { icon: null, customIcon: zfcIcon, label: "Buy CBC", color: "from-violet to-magenta", route: "/buy-zfc", animation: "pulse" as const },
-  { icon: null, customIcon: historyIcon, label: "Tasks", color: "from-gold to-magenta", route: "/history", animation: "bounce" as const },
+  { icon: null, customIcon: historyIcon, label: "Tasks", color: "from-gold to-magenta", route: "tasks", animation: "bounce" as const },
   { icon: null, customIcon: communityIcon, label: "Community", color: "from-teal to-violet", route: "/community", animation: "float" as const },
   { icon: null, customIcon: referIcon, label: "Refer & Earn", color: "from-magenta to-gold", route: "/referral", animation: "glow" as const },
   { icon: null, customIcon: supportIcon, label: "Support", color: "from-violet to-teal", route: "https://t.me/zenfiadmin", animation: "pulse" as const, external: true },
@@ -102,6 +104,9 @@ export const Dashboard = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProfilePanel, setShowProfilePanel] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
+  const [showTasksPanel, setShowTasksPanel] = useState(false);
+  const [recentClaims, setRecentClaims] = useState<{id: string; amount: number; date: string; status: string}[]>([]);
+  const [claimsLoading, setClaimsLoading] = useState(false);
   // Only used for optimistic claim updates - starts null, set after a claim
   const [claimBoost, setClaimBoost] = useState(0);
   
@@ -187,6 +192,11 @@ export const Dashboard = () => {
     }
   }, []);
 
+  // Fetch recent claims for history panel on mount
+  useEffect(() => {
+    if (user?.id) fetchRecentClaims();
+  }, [user?.id]);
+
   const addClaimToDatabase = async (amount: number) => {
     if (!user?.id) return;
     
@@ -262,7 +272,22 @@ export const Dashboard = () => {
     setIsClaiming(false);
   };
 
+  const fetchRecentClaims = async () => {
+    if (!user?.id) return;
+    setClaimsLoading(true);
+    try {
+      const { data } = await supabase.from("claims").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10);
+      setRecentClaims((data || []).map(c => ({ id: c.id, amount: c.amount, date: c.created_at, status: c.status })));
+    } catch (e) { console.error(e); }
+    finally { setClaimsLoading(false); }
+  };
+
   const handleActionClick = (route?: string, external?: boolean) => {
+    if (route === "tasks") {
+      if (!showTasksPanel) fetchRecentClaims();
+      setShowTasksPanel(prev => !prev);
+      return;
+    }
     if (route) {
       if (external) {
         window.open(route, "_blank", "noopener,noreferrer");
@@ -314,14 +339,42 @@ export const Dashboard = () => {
       </header>
 
       <main className="relative z-0 px-4 space-y-4">
-        {/* Compact Virtual Bank Card - show skeleton if balance loading */}
-        <div className="animate-fade-in-up">
-          <VirtualBankCard 
-            balance={isBalanceLoading ? 0 : displayBalance} 
-            cardNumber="4829" 
-            className="min-h-[110px]"
-            isLoading={isBalanceLoading}
-          />
+        {/* Balance Card + History Side Panel */}
+        <div className="flex gap-2 items-start animate-fade-in-up">
+          <div className="flex-1 min-w-0">
+            <VirtualBankCard 
+              balance={isBalanceLoading ? 0 : displayBalance} 
+              cardNumber="4829" 
+              className="min-h-[110px]"
+              isLoading={isBalanceLoading}
+            />
+          </div>
+          {/* History Side Panel */}
+          <div className="w-[108px] flex-shrink-0 glass-card p-2 flex flex-col gap-1.5" style={{ minHeight: "110px" }}>
+            <div className="flex items-center gap-1">
+              <img src={historyIcon} alt="History" className="w-3.5 h-3.5 rounded-full" />
+              <span className="text-[9px] font-display font-semibold text-foreground">History</span>
+            </div>
+            {claimsLoading ? (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="w-3 h-3 border border-violet border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : recentClaims.length === 0 ? (
+              <p className="text-[8px] text-muted-foreground text-center mt-2">No activity yet</p>
+            ) : (
+              <div className="space-y-1 overflow-hidden flex-1">
+                {recentClaims.slice(0, 4).map((c) => (
+                  <div key={c.id} className="flex items-center justify-between">
+                    <span className="text-[8px] text-teal font-medium">+₦{Number(c.amount).toLocaleString()}</span>
+                    <span className="text-[7px] text-muted-foreground">{new Date(c.date).toLocaleDateString("en-NG", { day: "numeric", month: "short" })}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <button onClick={() => navigate("/history")} className="text-[8px] text-violet font-medium text-center mt-auto hover:text-violet/80 transition-colors">
+              View all →
+            </button>
+          </div>
         </div>
 
         {/* Primary Action Buttons - More Compact */}
@@ -452,47 +505,49 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* Earn More Tasks */}
-        <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-          <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-display font-semibold">Earn More Tasks</h2>
-            <span className="text-[10px] text-gold font-semibold animate-pulse">🔥 Live</span>
-          </div>
-          <div className="space-y-2">
-            {surveyTasks.map((task, index) => (
-              <a
-                key={task.id}
-                href={task.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="glass-card p-3 flex items-center gap-3 cursor-pointer relative overflow-hidden hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 animate-fade-in-up"
-                style={{
-                  background: `linear-gradient(135deg, ${task.bgFrom}, ${task.bgTo})`,
-                  border: `1px solid ${task.borderColor}`,
-                  animationDelay: `${0.32 + index * 0.05}s`,
-                  display: "flex",
-                }}
-              >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: task.iconBg }}>
-                  <task.icon className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <p className="font-semibold text-xs text-foreground truncate">{task.title}</p>
-                    <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold flex-shrink-0" style={{ background: task.badgeBg, color: task.badgeColor }}>
-                      {task.badge}
-                    </span>
+        {/* Tasks Panel - shown when Tasks button is clicked */}
+        {showTasksPanel && (
+          <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-sm font-display font-semibold">Earn More Tasks</h2>
+              <span className="text-[10px] text-gold font-semibold animate-pulse">🔥 Live</span>
+            </div>
+            <div className="space-y-2">
+              {surveyTasks.map((task, index) => (
+                <a
+                  key={task.id}
+                  href={task.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="glass-card p-3 flex items-center gap-3 cursor-pointer relative overflow-hidden hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 animate-fade-in-up"
+                  style={{
+                    background: `linear-gradient(135deg, ${task.bgFrom}, ${task.bgTo})`,
+                    border: `1px solid ${task.borderColor}`,
+                    animationDelay: `${0.05 + index * 0.05}s`,
+                    display: "flex",
+                  }}
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: task.iconBg }}>
+                    <task.icon className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-[10px] text-muted-foreground truncate">{task.description}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                  <span className="text-xs font-bold text-gold">{task.reward}</span>
-                  <ExternalLink className="w-3 h-3 text-muted-foreground" />
-                </div>
-              </a>
-            ))}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <p className="font-semibold text-xs text-foreground truncate">{task.title}</p>
+                      <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold flex-shrink-0" style={{ background: task.badgeBg, color: task.badgeColor }}>
+                        {task.badge}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground truncate">{task.description}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <span className="text-xs font-bold text-gold">{task.reward}</span>
+                    <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Bottom Carousel - Auto-sliding */}
         <div 
