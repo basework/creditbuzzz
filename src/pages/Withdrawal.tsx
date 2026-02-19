@@ -53,6 +53,7 @@ export const Withdrawal = () => {
   const [currentActivationCode, setCurrentActivationCode] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [withdrawalMode, setWithdrawalMode] = useState<"weekly" | "daily">("weekly");
   const [zfcError, setZfcError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     accountNumber: flowState?.formData?.accountNumber || "",
@@ -99,6 +100,14 @@ export const Withdrawal = () => {
           setCurrentActivationCode(profile.activation_code);
         }
       }
+      // Fetch withdrawal mode setting
+      const { data: setting } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "withdrawal_mode")
+        .single();
+      if (setting) setWithdrawalMode(setting.value as "weekly" | "daily");
+
       setIsLoading(false);
     };
 
@@ -282,19 +291,19 @@ export const Withdrawal = () => {
 
   const isFormValid = formData.accountNumber && formData.accountName && formData.bank && formData.amount && formData.zfcCode;
 
-  // Weekend check: Friday 00:00 to Sunday 23:50
+  // Weekend check: Friday 00:00 to Sunday 23:50 (only when mode is weekly)
   const isWithdrawalOpen = (() => {
+    if (withdrawalMode === "daily") return true;
     const now = new Date();
     const day = now.getDay(); // 0=Sun, 5=Fri, 6=Sat
     const hours = now.getHours();
     const minutes = now.getMinutes();
 
-    if (day === 5 || day === 6) return true; // Friday & Saturday: all day
+    if (day === 5 || day === 6) return true;
     if (day === 0) {
-      // Sunday: open until 23:50
       return hours < 23 || (hours === 23 && minutes <= 50);
     }
-    return false; // Mon-Thu closed
+    return false;
   })();
 
   if (!isWithdrawalOpen && currentStep === "form") {
