@@ -242,7 +242,7 @@ export const AdminDashboard = () => {
     return new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 0 }).format(value);
   };
 
-  if (authLoading || roleLoading || isLoading) {
+  if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-violet border-t-transparent rounded-full animate-spin" />
