@@ -71,36 +71,41 @@ const RoutePersistence = () => {
   return null;
 };
 
+const MIN_HIDDEN_MS = 60_000; // Only reload if hidden for 60+ seconds
+
 const AppVisibilityRefresh = () => {
   useEffect(() => {
-    let hidden = false;
+    let hiddenAt: number | null = null;
 
-    const markHidden = () => {
-      if (document.visibilityState === "hidden") hidden = true;
-    };
-    const reload = () => {
-      if (hidden && document.visibilityState === "visible") {
-        hidden = false;
-        window.location.reload();
+    const onVisChange = () => {
+      if (document.visibilityState === "hidden") {
+        hiddenAt = Date.now();
+      } else if (document.visibilityState === "visible" && hiddenAt) {
+        const away = Date.now() - hiddenAt;
+        hiddenAt = null;
+        if (away >= MIN_HIDDEN_MS) {
+          window.location.reload();
+        }
       }
     };
     const onFocus = () => {
-      if (hidden) {
-        hidden = false;
-        window.location.reload();
+      if (hiddenAt) {
+        const away = Date.now() - hiddenAt;
+        hiddenAt = null;
+        if (away >= MIN_HIDDEN_MS) {
+          window.location.reload();
+        }
       }
     };
     const onPageShow = (e: PageTransitionEvent) => {
       if (e.persisted) window.location.reload();
     };
 
-    document.addEventListener("visibilitychange", markHidden);
-    document.addEventListener("visibilitychange", reload);
+    document.addEventListener("visibilitychange", onVisChange);
     window.addEventListener("focus", onFocus);
     window.addEventListener("pageshow", onPageShow);
     return () => {
-      document.removeEventListener("visibilitychange", markHidden);
-      document.removeEventListener("visibilitychange", reload);
+      document.removeEventListener("visibilitychange", onVisChange);
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("pageshow", onPageShow);
     };
