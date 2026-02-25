@@ -24,6 +24,7 @@ import { AdminDashboard } from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import { getLastRoute, useRouteHistory } from "@/hooks/useRouteHistory";
 import { useAuth } from "@/hooks/useAuth";
+import { CrashOverlay } from "@/components/ui/CrashOverlay";
 
 const queryClient = new QueryClient();
 
@@ -119,6 +120,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <HashRouter>
+        <CrashOverlay />
         <AppVisibilityRefresh />
         <RoutePersistence />
         <PaymentStatusGate />
