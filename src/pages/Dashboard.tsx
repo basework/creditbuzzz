@@ -281,7 +281,7 @@ export const Dashboard = () => {
     }
 
     toast({
-      title: "₦10,000 Successfully Claimed!!",
+      title: "₦10,000 Successfully Claimed!",
       description: "Your balance has been updated.",
     });
 
@@ -506,60 +506,82 @@ export const Dashboard = () => {
           </button>
         </div>
 
-        {/* Action Grid - Compact */}
+        {/* REDESIGNED QUICK ACTIONS - 2-2-2 Layout */}
         <div 
-          className="space-y-2 animate-fade-in-up"
+          className="space-y-3 animate-fade-in-up"
           style={{ animationDelay: "0.2s" }}
         >
           <div className="flex items-center justify-between px-1">
             <h2 className="text-sm font-display font-semibold">Quick Actions</h2>
-            <span className="text-[10px] text-muted-foreground">Fast & reliable</span>
+            <span className="text-[10px] text-violet font-medium bg-violet/10 px-2 py-0.5 rounded-full">6 services</span>
           </div>
           
-          <div className={`grid gap-1.5 grid-cols-2 sm:grid-cols-3 ${quickActionCols}`}>
+          {/* 2-2-2 Grid - 2 columns on mobile, 3 on tablet, 6 on desktop */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {allActionButtons.filter(action => !(action as any).weekendOnly || isWeekendNow()).map((action, index) => {
               const isHiddenWeekend = false;
               return (
               <div
                 key={action.label}
-                className={`flex flex-col items-center gap-1 animate-fade-in-up min-w-[35%] max-w-[45%] flex-1 sm:flex-none sm:w-[45%] md:w-[35%]`}
+                className="group relative animate-fade-in-up"
                 style={{ animationDelay: `${0.25 + index * 0.03}s` }}
               >
-                <button
-                  onClick={() => {
-                    if (isHiddenWeekend) {
-                      toast({
-                        title: "⏳ Available on Weekends",
-                        description: "CBC purchase opens on Friday. Make sure to buy your CBC code by Friday 11:57 AM!",
-                      });
-                      return;
-                    }
-                    handleActionClick(action.route, (action as any).external);
-                  }}
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center hover:scale-[1.08] active:scale-[0.92] transition-all duration-200 group bg-gradient-to-br ${action.color} ${isHiddenWeekend ? "opacity-40 grayscale" : ""}`}
-                  style={{
-                    boxShadow: "0 3px 12px hsla(262, 76%, 57%, 0.3), inset 0 1px 0 hsla(0, 0%, 100%, 0.1)",
-                  }}
-                >
-                  {action.customIcon ? (
-                    <img src={action.customIcon} alt={action.label} className="w-full h-full rounded-xl object-cover" />
-                  ) : action.icon && (
-                    <AnimatedIcon 
-                      icon={action.icon} 
-                      className="w-5 h-5 text-white" 
-                      animationType={action.animation}
-                    />
-                  )}
-                </button>
-                <span className="text-[9px] font-medium text-muted-foreground text-center leading-tight">
-                  {action.label}
-                </span>
+                {/* Animated gradient border on hover */}
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-violet/0 via-violet/30 to-magenta/0 rounded-2xl opacity-0 group-hover:opacity-100 blur-md transition-all duration-500" />
+                
+                {/* Glass background with hover effect */}
+                <div className="relative bg-secondary/30 backdrop-blur-sm rounded-xl p-3 border border-white/5 hover:border-violet/30 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-violet/20">
+                  <button
+                    onClick={() => {
+                      if (isHiddenWeekend) {
+                        toast({
+                          title: "⏳ Available on Weekends",
+                          description: "CBC purchase opens on Friday. Make sure to buy your CBC code by Friday 11:57 AM!",
+                        });
+                        return;
+                      }
+                      handleActionClick(action.route, (action as any).external);
+                    }}
+                    className="w-full flex flex-col items-center gap-2"
+                  >
+                    {/* Icon Container with animated gradient */}
+                    <div 
+                      className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 bg-gradient-to-br ${action.color} relative overflow-hidden`}
+                      style={{
+                        boxShadow: "0 4px 12px hsla(262, 76%, 57%, 0.3), inset 0 1px 0 hsla(0, 0%, 100%, 0.2)",
+                      }}
+                    >
+                      {/* Shine effect */}
+                      <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700" />
+                      
+                      {action.customIcon ? (
+                        <img src={action.customIcon} alt={action.label} className="w-8 h-8 rounded-lg object-cover" />
+                      ) : action.icon && (
+                        <AnimatedIcon 
+                          icon={action.icon} 
+                          className="w-6 h-6 text-white" 
+                          animationType={action.animation}
+                        />
+                      )}
+                    </div>
+                    
+                    {/* Label with glow on hover */}
+                    <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground transition-colors duration-300 text-center leading-tight">
+                      {action.label}
+                    </span>
+                    
+                    {/* Subtle indicator dot */}
+                    <div className="w-1 h-1 rounded-full bg-violet/0 group-hover:bg-violet/50 transition-all duration-300" />
+                  </button>
+                </div>
               </div>
               );
             })}
           </div>
+          
+          {/* Decorative gradient line */}
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-violet/30 to-transparent mt-1" />
         </div>
-
 
         {/* Bottom Carousel - Auto-sliding */}
         <div 
