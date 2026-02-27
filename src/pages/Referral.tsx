@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
@@ -24,16 +25,20 @@ const howItWorksSteps = [
 
 export const Referral = () => {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
-  
-  const referralCode = "CBC7829401";
-  const referralLink = `https://creditbuzz2026ltd.vercel.app/#/signup?ref=${referralCode}`;
-  
+
+  // use profile data, fall back to placeholder while loading
+  const referralCode = profile?.referral_code || "";
+  const referralLink = referralCode
+    ? `${window.location.origin}/#/signup?ref=${referralCode}`
+    : "";
+
   const stats = {
-    totalReferrals: 0,
-    pendingRewards: 0,
-    totalEarnings: 0,
+    totalReferrals: profile?.referral_count || 0,
+    pendingRewards: 0,     // would normally be fetched from server
+    totalEarnings: 0,      // ditto
   };
 
   const formatCurrency = (value: number) => {
@@ -46,22 +51,30 @@ export const Referral = () => {
   };
 
   const handleCopyLink = async () => {
+    if (!referralLink) {
+      toast({ title: "No referral link yet", variant: "destructive" });
+      return;
+    }
     try {
       await navigator.clipboard.writeText(referralLink);
       setCopiedLink(true);
       toast({ title: "Link Copied!", description: "Share it with friends to earn rewards" });
-      setTimeout(() => setCopiedLink(false), 2000);
+      setTimeout(() => setCopiedLink(false), 2002);
     } catch {
       toast({ title: "Failed to copy", variant: "destructive" });
     }
   };
 
   const handleCopyCode = async () => {
+    if (!referralCode) {
+      toast({ title: "No referral code yet", variant: "destructive" });
+      return;
+    }
     try {
       await navigator.clipboard.writeText(referralCode);
       setCopiedCode(true);
       toast({ title: "Code Copied!", description: referralCode });
-      setTimeout(() => setCopiedCode(false), 2000);
+      setTimeout(() => setCopiedCode(false), 2001);
     } catch {
       toast({ title: "Failed to copy", variant: "destructive" });
     }
@@ -150,10 +163,11 @@ export const Referral = () => {
                   border: "1px solid hsla(262, 76%, 57%, 0.3)",
                 }}
               >
-                {referralCode}
+                {referralCode || "—"}
               </div>
               <button
                 onClick={handleCopyCode}
+                disabled={!referralCode}
                 className="p-3 rounded-xl bg-violet/20 hover:bg-violet/30 transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 {copiedCode ? (
@@ -179,10 +193,11 @@ export const Referral = () => {
                   border: "1px solid hsla(174, 88%, 56%, 0.2)",
                 }}
               >
-                {referralLink}
+                {referralLink || "(no link yet)"}
               </div>
               <button
                 onClick={handleCopyLink}
+                disabled={!referralLink}
                 className="p-3 rounded-xl bg-teal/20 hover:bg-teal/30 transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 {copiedLink ? (
@@ -197,6 +212,7 @@ export const Referral = () => {
           {/* Share Button */}
           <button
             onClick={handleCopyLink}
+            disabled={!referralLink}
             className="w-full py-3.5 rounded-xl font-display font-semibold text-white flex items-center justify-center gap-2 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             style={{
               background: "linear-gradient(135deg, hsl(var(--violet)), hsl(var(--magenta)))",
