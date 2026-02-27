@@ -38,6 +38,7 @@ import communityIcon from "@/assets/community-icon.png";
 
 const carouselImages = [creditbuzzLogo, carousel3, carousel4];
 
+
 const allActionButtons = [
   { icon: null, customIcon: referIcon, label: "Tap & Earn", color: "from-magenta to-gold", route: "/referral", animation: "glow" as const },
   { icon: null, customIcon: historyIcon, label: "Tasks", color: "from-gold to-magenta", route: "tasks", animation: "bounce" as const },
@@ -80,9 +81,6 @@ export const Dashboard = () => {
   // Only used for optimistic claim updates - starts null, set after a claim
   const [claimBoost, setClaimBoost] = useState(0);
   
-  // Withdraw popup state
-  const [showWithdrawPopup, setShowWithdrawPopup] = useState(false);
-  
   // Balance: profile balance + any optimistic claim boost applied this session
   const profileBalance = profile?.balance ?? null;
   const displayBalance = profileBalance !== null ? Number(profileBalance) + claimBoost : 0;
@@ -95,6 +93,7 @@ export const Dashboard = () => {
 
   // Responsive columns for quick action grid (mobile -> desktop)
   const quickActionCols = isWeekendNow() ? "md:grid-cols-5 lg:grid-cols-5" : "md:grid-cols-4 lg:grid-cols-4";
+
 
   // Redirect to payment status when payment is approved/rejected in real-time
   useEffect(() => {
@@ -159,6 +158,7 @@ export const Dashboard = () => {
       supabase.removeChannel(channel);
     };
   }, [profile?.user_id, profile]);
+
 
   useEffect(() => {
     const onboardingComplete = localStorage.getItem("creditbuzz_onboarding_complete");
@@ -305,17 +305,6 @@ export const Dashboard = () => {
     }
   };
 
-  const handleWithdrawClick = () => {
-    // Get tasks completed count from profile
-    const tasksCompleted = profile?.tasks_completed || 0;
-    
-    if (tasksCompleted < 10) {
-      setShowWithdrawPopup(true);
-    } else {
-      navigate("/withdrawal");
-    }
-  };
-
   // Show banned overlay if user is banned
   if (isBanned) {
     return <BannedOverlay reason={profile?.ban_reason} />;
@@ -428,7 +417,7 @@ export const Dashboard = () => {
 
           {/* Withdraw Button */}
           <button
-            onClick={handleWithdrawClick}
+            onClick={() => navigate("/withdrawal")}
             className="relative overflow-hidden glass-card p-3 flex items-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
             style={{
               background: "linear-gradient(135deg, hsla(174, 88%, 56%, 0.15), hsla(262, 76%, 57%, 0.1))",
@@ -577,81 +566,6 @@ export const Dashboard = () => {
 
       <TasksSheet isOpen={showTasksSheet} onClose={() => setShowTasksSheet(false)} />
 
-      {/* Withdraw Requirement Popup */}
-      {showWithdrawPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
-            onClick={() => setShowWithdrawPopup(false)} 
-          />
-          
-          {/* Popup */}
-          <div className="relative w-full max-w-sm bg-background rounded-2xl overflow-hidden animate-fade-in-up border border-violet/20 shadow-2xl">
-            {/* Header with X button */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
-              <h3 className="font-display font-bold text-base">Withdrawal Requirement</h3>
-              <button 
-                onClick={() => setShowWithdrawPopup(false)}
-                className="p-2 rounded-xl bg-secondary hover:bg-muted transition-colors"
-                aria-label="Close"
-              >
-                <span className="text-muted-foreground text-sm font-bold">✕</span>
-              </button>
-            </div>
-            
-            {/* Content */}
-            <div className="p-6 space-y-4">
-              <div className="flex flex-col items-center text-center space-y-3">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gold to-magenta p-3 flex items-center justify-center">
-                  <Wallet className="w-8 h-8 text-white" />
-                </div>
-                
-                <p className="text-foreground font-medium">
-                  Complete 10 Tasks to Unlock Withdrawals
-                </p>
-                
-                <div className="w-full bg-secondary/30 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-muted-foreground">Progress</span>
-                    <span className="text-sm font-bold text-gold">{profile?.tasks_completed || 0}/10</span>
-                  </div>
-                  <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-gold to-magenta rounded-full transition-all duration-300"
-                      style={{ width: `${((profile?.tasks_completed || 0) / 10) * 100}%` }}
-                    />
-                  </div>
-                </div>
-                
-                <p className="text-sm text-muted-foreground">
-                  Complete all 10 tasks to enable withdrawal functionality and start withdrawing your earnings.
-                </p>
-              </div>
-              
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                  onClick={() => setShowWithdrawPopup(false)}
-                  className="px-4 py-2 rounded-xl bg-secondary hover:bg-muted transition-colors text-sm font-medium"
-                >
-                  Later
-                </button>
-                <button
-                  onClick={() => {
-                    setShowWithdrawPopup(false);
-                    setShowTasksSheet(true);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-gold to-magenta text-white text-sm font-medium hover:opacity-90 transition-opacity"
-                >
-                  View Tasks
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ── HISTORY SHEET ── */}
       {showHistorySheet && (
         <div className="fixed inset-0 z-50 flex flex-col">
@@ -720,3 +634,4 @@ export const Dashboard = () => {
 };
 
 export default Dashboard;
+
