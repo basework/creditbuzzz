@@ -281,7 +281,7 @@ export const Dashboard = () => {
     }
 
     toast({
-      title: "₦10,000 Successfully Claimed!",
+      title: "₦10,000 Successfully Claimed!!",
       description: "Your balance has been updated.",
     });
 
