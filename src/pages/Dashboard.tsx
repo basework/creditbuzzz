@@ -40,6 +40,7 @@ const carouselImages = [creditbuzzLogo, carousel3, carousel4];
 
 
 const allActionButtons = [
+  { icon: null, customIcon: supportIcon, label: "Support", color: "from-violet to-teal", route: "https://t.me/creditbuzzadmin", animation: "pulse" as const, external: true },
   { icon: null, customIcon: referIcon, label: "Tap & Earn", color: "from-magenta to-gold", route: "/referral", animation: "glow" as const },
   { icon: null, customIcon: historyIcon, label: "Tasks", color: "from-gold to-magenta", route: "tasks", animation: "bounce" as const },
   { icon: null, customIcon: communityIcon, label: "Community", color: "from-teal to-violet", route: "/community", animation: "float" as const },
@@ -449,8 +450,8 @@ export const Dashboard = () => {
             <span className="text-[10px] text-violet font-medium bg-violet/10 px-2 py-0.5 rounded-full">6 services</span>
           </div>
           
-          {/* 2-2-2 Grid - 2 columns on mobile, 3 on tablet, 6 on desktop with even spacing */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-6 justify-items-stretch">
+          {/* 2-2-2 Grid - 2 columns on mobile, 3 on tablet, 6 on desktop */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {allActionButtons.filter(action => !(action as any).weekendOnly || isWeekendNow()).map((action, index) => {
               const isHiddenWeekend = false;
               return (
