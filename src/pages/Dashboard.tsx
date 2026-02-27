@@ -89,7 +89,7 @@ const allActionButtons = [
   { icon: null, customIcon: historyIcon, label: "Tasks", color: "from-gold to-magenta", route: "tasks", animation: "bounce" as const },
   { icon: null, customIcon: communityIcon, label: "Community", color: "from-teal to-violet", route: "/community", animation: "float" as const },
   { icon: null, customIcon: referIcon, label: "Tap & Earn", color: "from-magenta to-gold", route: "/referral", animation: "glow" as const },
-  { icon: null, customIcon: zfcIcon, label: "Buy CBC", color: "from-violet to-magenta", route: "/buy-zfc", animation: "pulse" as const, weekendOnly: true },
+  { icon: null, customIcon: referIcon, label: "Referral", color: "from-violet to-magenta", route: "/refer", animation: "pulse" as const },
 ];
 
 // Helper: check if it's currently a weekend (Fri 00:00 - Sun 23:50)
