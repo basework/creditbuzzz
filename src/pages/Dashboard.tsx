@@ -136,8 +136,8 @@ export const Dashboard = () => {
   
   // Balance: profile balance + any optimistic claim boost applied this session
   const profileBalance = profile?.balance ?? null;
-  const displayBalance = profileBalance !== null ? Number(profileBalance) + claimBoost : null;
-  const isBalanceLoading = displayBalance === null;
+  const displayBalance = profileBalance !== null ? Number(profileBalance) + claimBoost : 0;
+  const isBalanceLoading = profileBalance === null;
   const { canClaim, remainingTime, startCooldown } = useClaimTimer();
   const [emblaRef] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 4000 })]);
   
@@ -504,7 +504,7 @@ export const Dashboard = () => {
               <div
                 key={action.label}
                 className="flex flex-col items-center gap-1 animate-fade-in-up"
-                style={{ animationDelay: `${0.25 + index * 0.03}s` }}
+                style={{ animationDelay: `${0.25 + index * 0.03}s`, minWidth: '35%', maxWidth: '45%', flex: '1 1 35%' }}
               >
                 <button
                   onClick={() => {
