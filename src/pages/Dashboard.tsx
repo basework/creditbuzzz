@@ -108,7 +108,7 @@ const isWeekendNow = () => {
 
 export const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, profile, isBanned, isLoading: authLoading } = useAuth();
+  const { user, profile, isBanned, isLoading: authLoading, refreshProfile } = useAuth();
   const { 
     hasPendingPayment, 
     latestPayment, 
@@ -292,9 +292,28 @@ export const Dashboard = () => {
           .from('profiles')
           .update({ balance: newBalance })
           .eq('user_id', userId);
-        if (!error) return;
+        if (!error) {
+          try {
+            await refreshProfile();
+          } catch (e) {
+            console.error('refreshProfile failed after update:', e);
+          }
+          return;
+        }
         console.error(`Balance sync attempt ${i + 1} failed:`, error);
         if (i < retries - 1) await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+      }
+
+      // If all retries failed, persist the optimistic value in local cache
+      try {
+        const cached = localStorage.getItem("creditbuzz_profile_cache");
+        if (cached) {
+          const cachedProfile = JSON.parse(cached);
+          cachedProfile.balance = newBalance;
+          localStorage.setItem("creditbuzz_profile_cache", JSON.stringify(cachedProfile));
+        }
+      } catch (e) {
+        console.error('Failed to persist optimistic balance to cache:', e);
       }
     };
 
@@ -503,8 +522,8 @@ export const Dashboard = () => {
               return (
               <div
                 key={action.label}
-                className="flex flex-col items-center gap-1 animate-fade-in-up"
-                style={{ animationDelay: `${0.25 + index * 0.03}s`, minWidth: '35%', maxWidth: '45%', flex: '1 1 35%' }}
+                className={`flex flex-col items-center gap-1 animate-fade-in-up min-w-[35%] max-w-[45%] flex-1 sm:flex-none sm:w-[45%] md:w-[35%]`}
+                style={{ animationDelay: `${0.25 + index * 0.03}s` }}
               >
                 <button
                   onClick={() => {
