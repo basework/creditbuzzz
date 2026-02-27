@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Star, Users, TrendingUp, Sparkles, Coins, Gift, CheckCircle2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -88,46 +88,102 @@ export const TasksSheet = ({ isOpen, onClose }: TasksSheetProps) => {
     } catch { return []; }
   });
 
+  // timer state used when a task has been started
+  // the countdown only runs while the sheet is visible;
+  // if the user leaves the tab/app the timer pauses,
+  // ensuring 10 full seconds of active viewing are required
   const [remainingTime, setRemainingTime] = useState("00:00:10");
   const [timerProgress, setTimerProgress] = useState(100);
+  const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
 
-  // Timer countdown: 10 seconds
+  const secondsRef = useRef(10);
+  const intervalRef = useRef<number | null>(null);
+
+  // helper to update UI from secondsRef
+  const updateTime = () => {
+    const secs = secondsRef.current;
+    setRemainingTime(`00:00:${String(secs).padStart(2, '0')}`);
+    setTimerProgress((secs / 10) * 100);
+  };
+
+  const resetTimer = () => {
+    secondsRef.current = 10;
+    updateTime();
+  };
+
+  const completeActive = () => {
+    if (activeTaskId !== null && !completedTasks.includes(activeTaskId)) {
+      const updated = [...completedTasks, activeTaskId];
+      setCompletedTasks(updated);
+      localStorage.setItem("creditbuzz_completed_tasks", JSON.stringify(updated));
+      toast({
+        title: "✅ Task Completed!",
+        description: "Task has been marked as done.",
+      });
+    }
+    setActiveTaskId(null);
+    resetTimer();
+  };
+
+  // manage countdown and visibility
   useEffect(() => {
-    if (!isOpen) return;
-
-    let secondsLeft = 10;
-    setRemainingTime("00:00:10");
-    setTimerProgress(100);
-
-    const interval = setInterval(() => {
-      secondsLeft--;
-      setRemainingTime(`00:00:${String(secondsLeft).padStart(2, '0')}`);
-      setTimerProgress((secondsLeft / 10) * 100);
-
-      if (secondsLeft <= 0) {
-        clearInterval(interval);
-        // Reset timer when it reaches 0
-        secondsLeft = 10;
-        setRemainingTime("00:00:10");
-        setTimerProgress(100);
+    const tick = () => {
+      secondsRef.current -= 1;
+      if (secondsRef.current <= 0) {
+        clearInterval(intervalRef.current!);
+        completeActive();
+      } else {
+        updateTime();
       }
-    }, 1000);
+    };
 
-    return () => clearInterval(interval);
-  }, [isOpen]);
+    const startInterval = () => {
+      if (intervalRef.current !== null) clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(tick, 1000);
+    };
 
-  const handleTaskComplete = async (task: typeof surveyTasks[0]) => {
+    const stopInterval = () => {
+      if (intervalRef.current !== null) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        stopInterval();
+      } else if (activeTaskId !== null && isOpen) {
+        startInterval();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    if (activeTaskId !== null && isOpen && document.visibilityState === "visible") {
+      startInterval();
+    }
+
+    // if sheet closes while a task is running, cancel it
+    if (!isOpen && activeTaskId !== null) {
+      stopInterval();
+      setActiveTaskId(null);
+      resetTimer();
+    }
+
+    return () => {
+      stopInterval();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [activeTaskId, isOpen]);
+
+  const handleTaskStart = (task: typeof surveyTasks[0]) => {
+    // open external link immediately
     window.open(task.link, "_blank", "noopener,noreferrer");
+    // if already completed nothing to do
     if (completedTasks.includes(task.id)) return;
-
-    const updatedCompleted = [...completedTasks, task.id];
-    setCompletedTasks(updatedCompleted);
-    localStorage.setItem("creditbuzz_completed_tasks", JSON.stringify(updatedCompleted));
-
-    toast({
-      title: "✅ Task Completed!",
-      description: "Task has been marked as done.",
-    });
+    // begin timing for this task
+    setActiveTaskId(task.id);
+    resetTimer();
   };
 
   if (!isOpen) return null;
@@ -160,17 +216,19 @@ export const TasksSheet = ({ isOpen, onClose }: TasksSheetProps) => {
           <span className="text-[10px] text-emerald-400 font-medium bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
             {surveyTasks.length - completedTasks.length} Available
           </span>
-          <div className="relative flex items-center gap-1">
-            <span className="text-[10px] text-amber-400 font-medium bg-amber-500/10 px-2 py-1 rounded-full border border-amber-500/20">
-              {remainingTime}
-            </span>
-            <div className="w-8 h-1.5 bg-amber-900/30 rounded-full overflow-hidden border border-amber-500/20">
-              <div
-                className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-100"
-                style={{ width: `${timerProgress}%` }}
-              ></div>
+          {activeTaskId !== null && (
+            <div className="relative flex items-center gap-1">
+              <span className="text-[10px] text-amber-400 font-medium bg-amber-500/10 px-2 py-1 rounded-full border border-amber-500/20">
+                {remainingTime}
+              </span>
+              <div className="w-8 h-1.5 bg-amber-900/30 rounded-full overflow-hidden border border-amber-500/20">
+                <div
+                  className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all duration-100"
+                  style={{ width: `${timerProgress}%` }}
+                ></div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </header>
 
@@ -229,15 +287,23 @@ export const TasksSheet = ({ isOpen, onClose }: TasksSheetProps) => {
               </div>
 
               <button
-                onClick={() => handleTaskComplete(task)}
-                disabled={isCompleted}
+                onClick={() => handleTaskStart(task)}
+                disabled={
+                  isCompleted || activeTaskId === task.id
+                }
                 className={`hh-task-btn ${
                   isCompleted
                     ? 'hh-task-btn-completed'
-                    : 'hh-task-btn-available'
+                    : activeTaskId === task.id
+                      ? 'hh-task-btn-completed'
+                      : 'hh-task-btn-available'
                 }`}
               >
-                {isCompleted ? 'Completed Today' : 'Start Task'}
+                {isCompleted
+                  ? 'Completed Today'
+                  : activeTaskId === task.id
+                    ? 'In Progress'
+                    : 'Start Task'}
               </button>
             </div>
           </div>
