@@ -449,8 +449,8 @@ export const Dashboard = () => {
             <span className="text-[10px] text-violet font-medium bg-violet/10 px-2 py-0.5 rounded-full">6 services</span>
           </div>
           
-          {/* 2-2-2 Grid - 2 columns on mobile, 3 on tablet, 6 on desktop */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* 2-2-2 Grid - 2 columns on mobile, 3 on tablet, 6 on desktop with even spacing */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-6 justify-items-stretch">
             {allActionButtons.filter(action => !(action as any).weekendOnly || isWeekendNow()).map((action, index) => {
               const isHiddenWeekend = false;
               return (
