@@ -12,6 +12,7 @@ import { ProfilePanel } from "@/components/ui/ProfilePanel";
 import { AnimatedIcon } from "@/components/ui/AnimatedIcon";
 import { BannedOverlay } from "@/components/ui/BannedOverlay";
 import { NotificationPanel } from "@/components/ui/NotificationPanel";
+import { TasksSheet } from "@/components/TasksSheet";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { useClaimTimer } from "@/hooks/useClaimTimer";
@@ -23,16 +24,7 @@ import {
   Wallet,
   Gift,
   Timer,
-  ExternalLink,
-  ArrowLeft,
-  Star,
-  Check,
-  Coins,
-  Users,
-  Sparkles,
-  TrendingUp,
-  CheckCircle2,
-  Clock
+  ExternalLink
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import creditbuzzLogo from "@/assets/creditbuzz-logo.jpg";
@@ -46,78 +38,6 @@ import communityIcon from "@/assets/community-icon.png";
 
 const carouselImages = [creditbuzzLogo, carousel3, carousel4];
 
-const surveyTasks = [
-  {
-    id: 1, title: "Join Site Survey", description: "Complete a quick site survey & earn rewards",
-    link: "https://helpinghands.money", reward: "+₦5,000", badge: "HOT", icon: Star,
-    iconBg: "linear-gradient(135deg, hsl(45,100%,51%), hsl(25,100%,55%))",
-    bgFrom: "hsla(45,100%,51%,0.06)", bgTo: "hsla(262,76%,57%,0.04)",
-    borderColor: "hsla(45,100%,51%,0.2)", badgeBg: "hsla(45,100%,51%,0.2)", badgeColor: "hsl(45,100%,51%)",
-  },
-  {
-    id: 2, title: "Referral Bonus Survey", description: "Answer referral questions & get paid instantly",
-    link: "https://helpinghands.money", reward: "+₦5,000", badge: "NEW", icon: Users,
-    iconBg: "linear-gradient(135deg, hsl(289,100%,65%), hsl(262,76%,57%))",
-    bgFrom: "hsla(289,100%,65%,0.06)", bgTo: "hsla(262,76%,57%,0.04)",
-    borderColor: "hsla(289,100%,65%,0.2)", badgeBg: "hsla(289,100%,65%,0.2)", badgeColor: "hsl(289,100%,65%)",
-  },
-  {
-    id: 3, title: "Earnings Growth Task", description: "Help us improve & unlock extra earnings",
-    link: "https://helpinghands.money", reward: "+₦5,000", badge: "EARN", icon: TrendingUp,
-    iconBg: "linear-gradient(135deg, hsl(174,88%,56%), hsl(174,70%,40%))",
-    bgFrom: "hsla(174,88%,56%,0.06)", bgTo: "hsla(262,76%,57%,0.04)",
-    borderColor: "hsla(174,88%,56%,0.2)", badgeBg: "hsla(174,88%,56%,0.2)", badgeColor: "hsl(174,88%,56%)",
-  },
-  {
-    id: 4, title: "Community Feedback", description: "Share your experience and earn bonus credits",
-    link: "https://helpinghands.money", reward: "+₦5,000", badge: "EASY", icon: Sparkles,
-    iconBg: "linear-gradient(135deg, hsl(262,76%,57%), hsl(174,88%,56%))",
-    bgFrom: "hsla(262,76%,57%,0.06)", bgTo: "hsla(174,88%,56%,0.04)",
-    borderColor: "hsla(262,76%,57%,0.2)", badgeBg: "hsla(262,76%,57%,0.2)", badgeColor: "hsl(262,76%,57%)",
-  },
-  {
-    id: 5, title: "Daily Reward Survey", description: "Daily task — complete & collect your coins",
-    link: "https://helpinghands.money", reward: "+₦5,000", badge: "DAILY", icon: Coins,
-    iconBg: "linear-gradient(135deg, hsl(35,100%,55%), hsl(45,100%,51%))",
-    bgFrom: "hsla(35,100%,55%,0.06)", bgTo: "hsla(45,100%,51%,0.04)",
-    borderColor: "hsla(35,100%,55%,0.2)", badgeBg: "hsla(35,100%,55%,0.2)", badgeColor: "hsl(35,100%,55%)",
-  },
-  {
-    id: 6, title: "Quick Feedback Survey", description: "Share your opinion and earn extra rewards",
-    link: "https://helpinghands.money", reward: "+₦5,000", badge: "HOT", icon: Star,
-    iconBg: "linear-gradient(135deg, hsl(45,100%,51%), hsl(25,100%,55%))",
-    bgFrom: "hsla(45,100%,51%,0.06)", bgTo: "hsla(262,76%,57%,0.04)",
-    borderColor: "hsla(45,100%,51%,0.2)", badgeBg: "hsla(45,100%,51%,0.2)", badgeColor: "hsl(45,100%,51%)",
-  },
-  {
-    id: 7, title: "Product Research Task", description: "Help us improve our products and services",
-    link: "https://helpinghands.money", reward: "+₦5,000", badge: "NEW", icon: Users,
-    iconBg: "linear-gradient(135deg, hsl(289,100%,65%), hsl(262,76%,57%))",
-    bgFrom: "hsla(289,100%,65%,0.06)", bgTo: "hsla(262,76%,57%,0.04)",
-    borderColor: "hsla(289,100%,65%,0.2)", badgeBg: "hsla(289,100%,65%,0.2)", badgeColor: "hsl(289,100%,65%)",
-  },
-  {
-    id: 8, title: "Marketing Survey", description: "Rate our services and get rewarded instantly",
-    link: "https://helpinghands.money", reward: "+₦5,000", badge: "EARN", icon: TrendingUp,
-    iconBg: "linear-gradient(135deg, hsl(174,88%,56%), hsl(174,70%,40%))",
-    bgFrom: "hsla(174,88%,56%,0.06)", bgTo: "hsla(262,76%,57%,0.04)",
-    borderColor: "hsla(174,88%,56%,0.2)", badgeBg: "hsla(174,88%,56%,0.2)", badgeColor: "hsl(174,88%,56%)",
-  },
-  {
-    id: 9, title: "User Experience Survey", description: "Tell us how we can serve you better",
-    link: "https://helpinghands.money", reward: "+₦5,000", badge: "EASY", icon: Sparkles,
-    iconBg: "linear-gradient(135deg, hsl(262,76%,57%), hsl(174,88%,56%))",
-    bgFrom: "hsla(262,76%,57%,0.06)", bgTo: "hsla(174,88%,56%,0.04)",
-    borderColor: "hsla(262,76%,57%,0.2)", badgeBg: "hsla(262,76%,57%,0.2)", badgeColor: "hsl(262,76%,57%)",
-  },
-  {
-    id: 10, title: "Weekend Bonus Survey", description: "Complete during weekends for bonus rewards",
-    link: "https://helpinghands.money", reward: "+₦5,000", badge: "DAILY", icon: Coins,
-    iconBg: "linear-gradient(135deg, hsl(35,100%,55%), hsl(45,100%,51%))",
-    bgFrom: "hsla(35,100%,55%,0.06)", bgTo: "hsla(45,100%,51%,0.04)",
-    borderColor: "hsla(35,100%,55%,0.2)", badgeBg: "hsla(35,100%,55%,0.2)", badgeColor: "hsl(35,100%,55%)",
-  },
-];
 
 const allActionButtons = [
   { icon: null, customIcon: supportIcon, label: "Support", color: "from-violet to-teal", route: "https://t.me/creditbuzzadmin", animation: "pulse" as const, external: true },
@@ -158,12 +78,6 @@ export const Dashboard = () => {
   const location = useLocation();
   const [showTasksSheet, setShowTasksSheet] = useState(() => !!(location.state as any)?.openTasks);
   const [showHistorySheet, setShowHistorySheet] = useState(false);
-  const [completedTasks, setCompletedTasks] = useState<number[]>(() => {
-    try {
-      const saved = localStorage.getItem("creditbuzz_completed_tasks");
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
   const [recentTransactions, setRecentTransactions] = useState<{id: string; amount: number; date: string; status: string; type: string}[]>([]);
   const [claimsLoading, setClaimsLoading] = useState(false);
   // Only used for optimistic claim updates - starts null, set after a claim
@@ -355,20 +269,6 @@ export const Dashboard = () => {
     syncBalance().catch(console.error);
     addClaimToDatabase(10000).catch(console.error);
 
-  };
-
-  const handleTaskComplete = async (task: typeof surveyTasks[0]) => {
-    window.open(task.link, "_blank", "noopener,noreferrer");
-    if (completedTasks.includes(task.id)) return;
-
-    const updatedCompleted = [...completedTasks, task.id];
-    setCompletedTasks(updatedCompleted);
-    localStorage.setItem("creditbuzz_completed_tasks", JSON.stringify(updatedCompleted));
-
-    toast({
-      title: "✅ Task Completed!",
-      description: "Task has been marked as done.",
-    });
   };
 
   const fetchRecentTransactions = async () => {
@@ -666,114 +566,7 @@ export const Dashboard = () => {
         </div>
       </main>
 
-      {/* ── UPDATED TASKS PAGE WITH TASK PAGE DESIGN ── */}
-      {showTasksSheet && (
-        <div className="hh-task-root fixed inset-0 z-50 flex flex-col overflow-hidden">
-          {/* Animated background bubbles */}
-          <div className="hh-bubbles-container" aria-hidden="true">
-            {[...Array(12)].map((_, i) => (
-              <div key={i} className={`hh-bubble hh-bubble-${i + 1}`}></div>
-            ))}
-          </div>
-
-          {/* Mesh gradient overlay */}
-          <div className="hh-mesh-overlay" aria-hidden="true"></div>
-
-          {/* Header */}
-          <header className="relative z-10 hh-task-header-nav px-4 py-4 flex items-center gap-3 border-b border-white/5">
-            <button
-              onClick={() => setShowTasksSheet(false)}
-              className="hh-back-btn"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="flex-1">
-              <h1 className="hh-title">Earn More</h1>
-              <p className="hh-subtitle">Complete tasks & earn rewards</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-emerald-400 font-medium bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
-                {surveyTasks.length - completedTasks.length} Available
-              </span>
-              <span className="text-[10px] text-amber-400 font-medium bg-amber-500/10 px-2 py-1 rounded-full border border-amber-500/20 animate-pulse">
-                10s Timer
-              </span>
-            </div>
-          </header>
-
-          {/* Tasks list */}
-          <div className="relative z-10 flex-1 overflow-y-auto px-4 py-4 space-y-3">
-            <div className="hh-card hh-card-hero mb-4">
-              <div className="hh-orb hh-orb-1" aria-hidden="true"></div>
-              <div className="hh-orb hh-orb-2" aria-hidden="true"></div>
-              <div className="relative z-10 flex items-center gap-3">
-                <div className="hh-icon-ring">
-                  <Sparkles className="h-5 w-5 text-amber-300" />
-                </div>
-                <div>
-                  <p className="text-xs text-emerald-400 font-bold uppercase tracking-wider">💰 Earn Rewards</p>
-                  <p className="text-sm text-white/80">Complete simple survey tasks to earn ₦5,000 each</p>
-                </div>
-              </div>
-            </div>
-
-            {surveyTasks.map((task, index) => {
-              const isCompleted = completedTasks.includes(task.id);
-              return (
-              <div
-                key={task.id}
-                className="hh-task-card animate-fade-in-up"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <div className="hh-task-header">
-                  <div className="flex items-center gap-3">
-                    <div className="hh-task-icon" style={{ background: task.iconBg }}>
-                      <task.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="hh-task-title">{task.title}</h3>
-                      <p className="hh-task-desc">{task.description}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="hh-task-body">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="hh-reward-badge">
-                        <Gift className="h-3 w-3" />
-                        {task.reward}
-                      </span>
-                      <span className="text-xs text-gray-500">reward</span>
-                    </div>
-                    
-                    {isCompleted && (
-                      <span className="hh-status-badge hh-status-completed">
-                        <CheckCircle2 className="h-3 w-3" />
-                        Completed
-                      </span>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => handleTaskComplete(task)}
-                    disabled={isCompleted}
-                    className={`hh-task-btn ${
-                      isCompleted
-                        ? 'hh-task-btn-completed'
-                        : 'hh-task-btn-available'
-                    }`}
-                  >
-                    {isCompleted ? 'Completed Today' : 'Start Task'}
-                  </button>
-                </div>
-              </div>
-              );
-            })}
-          
-          </div>
-        </div>
-      )}
+      <TasksSheet isOpen={showTasksSheet} onClose={() => setShowTasksSheet(false)} />
 
       {/* ── HISTORY SHEET ── */}
       {showHistorySheet && (
@@ -838,15 +631,9 @@ export const Dashboard = () => {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        .hh-task-root {
-          background: #050d14;
-          color: white;
-        }
-
-        .hh-bubbles-container {
-          position: fixed;
+    </div>
+  );
+};
           inset: 0;
           pointer-events: none;
           z-index: 0;
