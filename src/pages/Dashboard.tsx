@@ -31,7 +31,6 @@ import creditbuzzLogo from "@/assets/creditbuzz-logo.jpg";
 import carousel3 from "@/assets/carousel-3.jpeg";
 import carousel4 from "@/assets/carousel-4.jpeg";
 import zfcIcon from "@/assets/cbc-icon.png";
-import referIcon from "@/assets/refer-icon.png";
 import supportIcon from "@/assets/support-icon.png";
 import historyIcon from "@/assets/history-icon.png";
 import communityIcon from "@/assets/community-icon.png";
@@ -44,8 +43,6 @@ const allActionButtons = [
   { icon: null, customIcon: historyIcon, label: "Tasks", color: "from-gold to-magenta", route: "tasks", animation: "bounce" as const },
   { icon: null, customIcon: communityIcon, label: "Community", color: "from-teal to-violet", route: "/community", animation: "float" as const },
   { icon: null, customIcon: zfcIcon, label: "Buy CBC", color: "from-gold to-magenta", route: "/buy-zfc", animation: "glow" as const },
-  { icon: null, customIcon: referIcon, label: "Tap & Earn", color: "from-magenta to-gold", route: "/referral", animation: "glow" as const },
-  { icon: null, customIcon: referIcon, label: "Referral", color: "from-violet to-magenta", route: "/refer", animation: "pulse" as const },
 ];
 
 // Helper: check if it's currently a weekend (Fri 00:00 - Sun 23:50)

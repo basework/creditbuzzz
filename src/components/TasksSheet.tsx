@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Star, Users, TrendingUp, Sparkles, Coins, Gift, CheckCircle2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
+// tasks definition (10 items)
 export const surveyTasks = [
   {
     id: 1, title: "Join Site Survey", description: "Complete a quick site survey & earn rewards",
@@ -75,6 +76,44 @@ export const surveyTasks = [
   },
 ];
 
+
+// --- helpers for daily task tracking ---------------------------------------
+const STORAGE_KEY = "creditbuzz_completed_tasks";
+interface StoredTasks {
+  date: string; // yyyy-mm-dd
+  tasks: number[];
+}
+
+const todayStr = () => new Date().toISOString().slice(0, 10);
+
+export function getTodayCompletedTasks(): number[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as StoredTasks;
+    if (parsed.date !== todayStr()) return [];
+    return parsed.tasks;
+  } catch {
+    return [];
+  }
+}
+
+export function recordTaskCompletion(id: number): number[] {
+  const existing = getTodayCompletedTasks();
+  if (existing.includes(id)) return existing;
+  const updated = [...existing, id];
+  const toStore: StoredTasks = { date: todayStr(), tasks: updated };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+  } catch {}
+  return updated;
+}
+
+// exported for external consumers (withdrawal gate, etc.)
+export function resetTodayTasks() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch {}
+}
+
 interface TasksSheetProps {
   isOpen: boolean;
   onClose: () => void;
@@ -82,11 +121,15 @@ interface TasksSheetProps {
 
 export const TasksSheet = ({ isOpen, onClose }: TasksSheetProps) => {
   const [completedTasks, setCompletedTasks] = useState<number[]>(() => {
-    try {
-      const saved = localStorage.getItem("creditbuzz_completed_tasks");
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+    return getTodayCompletedTasks();
   });
+
+  // if sheet is opened (or reopened) reload today's tasks in case date rolled over
+  useEffect(() => {
+    if (isOpen) {
+      setCompletedTasks(getTodayCompletedTasks());
+    }
+  }, [isOpen]);
 
   // timer state used when a task has been started
   // the countdown only runs while the sheet is visible;
@@ -113,9 +156,8 @@ export const TasksSheet = ({ isOpen, onClose }: TasksSheetProps) => {
 
   const completeActive = () => {
     if (activeTaskId !== null && !completedTasks.includes(activeTaskId)) {
-      const updated = [...completedTasks, activeTaskId];
+      const updated = recordTaskCompletion(activeTaskId);
       setCompletedTasks(updated);
-      localStorage.setItem("creditbuzz_completed_tasks", JSON.stringify(updated));
       toast({
         title: "✅ Task Completed!",
         description: "Task has been marked as done.",

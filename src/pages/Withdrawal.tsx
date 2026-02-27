@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Building2, User, Hash, Wallet, Lock, Shield, CheckCircle, Loader2, AlertCircle, ShoppingCart } from "lucide-react";
+import { getTodayCompletedTasks, surveyTasks } from "@/components/TasksSheet";
 import { FloatingParticles } from "@/components/ui/FloatingParticles";
 import { ZenfiLogo } from "@/components/ui/ZenfiLogo";
 import { WithdrawalProcessing } from "@/components/withdrawal/WithdrawalProcessing";
@@ -186,9 +187,25 @@ export const Withdrawal = () => {
 
   const displayBalance = availableBalance ?? 0;
 
+  // tasks progress for form disabling
+  const completedCount = getTodayCompletedTasks().length;
+  const totalTasks = surveyTasks.length;
+  const hasCompletedTasks = completedCount >= totalTasks;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // ensure daily tasks are complete before allowing withdrawal
+    const done = getTodayCompletedTasks().length;
+    if (done < surveyTasks.length) {
+      toast({
+        title: "Complete Tasks First",
+        description: `You must finish all ${surveyTasks.length} daily tasks before withdrawing.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Clear previous ZFC error
     setZfcError(null);
 
@@ -415,6 +432,32 @@ export const Withdrawal = () => {
       <main className="relative z-10 px-4 pb-8">
         <form onSubmit={handleSubmit} className="space-y-4">
 
+          {/* daily task progress (required) */}
+          {(() => {
+            const done = getTodayCompletedTasks().length;
+            const total = surveyTasks.length;
+            if (done < total) {
+              return (
+                <div className="p-4 mb-4 rounded-2xl animate-fade-in-up"
+                     style={{
+                       background: "hsla(45, 93%, 58%, 0.1)",
+                       border: "1px solid hsla(45, 93%, 58%, 0.2)",
+                     }}>
+                  <p className="text-sm font-medium text-foreground mb-2">
+                    Tasks completed: {done}/{total}
+                  </p>
+                  <div className="w-full bg-muted/20 rounded-full h-2">
+                    <div
+                      className="h-2 bg-teal transition-all"
+                      style={{ width: `${(done/total)*100}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
+
           {/* Balance Display Card */}
           <div
             className="p-5 rounded-2xl animate-fade-in-up"
@@ -609,7 +652,7 @@ export const Withdrawal = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!isFormValid || isSubmitting}
+            disabled={!isFormValid || isSubmitting || !hasCompletedTasks}
             className="w-full h-14 rounded-2xl font-display font-semibold text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 animate-fade-in-up flex items-center justify-center gap-2"
             style={{
               animationDelay: "0.2s",

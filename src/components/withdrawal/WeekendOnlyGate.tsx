@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Clock, Calendar, AlertTriangle, ArrowLeft, Timer } from "lucide-react";
+import { getTodayCompletedTasks, surveyTasks } from "@/components/TasksSheet";
 import { FloatingParticles } from "@/components/ui/FloatingParticles";
 import { ZenfiLogo } from "@/components/ui/ZenfiLogo";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +37,8 @@ const useCountdownToFriday = () => {
 export const WeekendOnlyGate = () => {
   const navigate = useNavigate();
   const timeLeft = useCountdownToFriday();
+  const completedCount = getTodayCompletedTasks().length;
+  const totalTasks = surveyTasks.length;
   return (
     <div className="min-h-screen bg-background relative">
       <FloatingParticles />
@@ -122,11 +125,30 @@ export const WeekendOnlyGate = () => {
             </div>
           </div>
 
-          {/* Countdown Timer */}
-          <div
-            className="p-4 rounded-xl space-y-3"
-            style={{ background: "hsla(262, 76%, 57%, 0.08)", border: "1px solid hsla(262, 76%, 57%, 0.2)" }}
-          >
+          {/* either task progress or countdown */}
+          {completedCount < totalTasks ? (
+            <div
+              className="p-4 rounded-xl space-y-3"
+              style={{ background: "hsla(174, 88%, 56%, 0.08)", border: "1px solid hsla(174, 88%, 56%, 0.2)" }}
+            >
+              <p className="text-sm text-foreground font-medium">
+                Complete today’s tasks before withdrawing
+              </p>
+              <div className="w-full bg-muted/20 rounded-full h-2">
+                <div
+                  className="h-2 bg-teal transition-all"
+                  style={{ width: `${(completedCount/totalTasks)*100}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                {completedCount} of {totalTasks} done
+              </p>
+            </div>
+          ) : (
+            <div
+              className="p-4 rounded-xl space-y-3"
+              style={{ background: "hsla(262, 76%, 57%, 0.08)", border: "1px solid hsla(262, 76%, 57%, 0.2)" }}
+            >
             <div className="flex items-center justify-center gap-2">
               <Timer className="w-4 h-4 text-violet" />
               <span className="text-xs font-semibold uppercase tracking-wider text-violet">Opens In</span>
@@ -153,6 +175,7 @@ export const WeekendOnlyGate = () => {
               ))}
             </div>
           </div>
+          )}
 
           {/* Back button */}
           <button
