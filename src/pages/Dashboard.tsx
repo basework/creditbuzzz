@@ -88,6 +88,7 @@ const allActionButtons = [
   { icon: null, customIcon: supportIcon, label: "Support", color: "from-violet to-teal", route: "https://t.me/creditbuzzadmin", animation: "pulse" as const, external: true },
   { icon: null, customIcon: historyIcon, label: "Tasks", color: "from-gold to-magenta", route: "tasks", animation: "bounce" as const },
   { icon: null, customIcon: communityIcon, label: "Community", color: "from-teal to-violet", route: "/community", animation: "float" as const },
+  { icon: null, customIcon: zfcIcon, label: "Buy CBC", color: "from-gold to-magenta", route: "/buy-zfc", animation: "glow" as const },
   { icon: null, customIcon: referIcon, label: "Tap & Earn", color: "from-magenta to-gold", route: "/referral", animation: "glow" as const },
   { icon: null, customIcon: referIcon, label: "Referral", color: "from-violet to-magenta", route: "/refer", animation: "pulse" as const },
 ];
@@ -142,6 +143,9 @@ export const Dashboard = () => {
   
   // Track route for persistence
   useRouteHistory();
+
+  // Responsive columns for quick action grid (mobile -> desktop)
+  const quickActionCols = isWeekendNow() ? "md:grid-cols-5 lg:grid-cols-5" : "md:grid-cols-4 lg:grid-cols-4";
 
 
   // Redirect to payment status when payment is approved/rejected in real-time
@@ -493,7 +497,7 @@ export const Dashboard = () => {
             <span className="text-[10px] text-muted-foreground">Fast & reliable</span>
           </div>
           
-          <div className={`grid gap-1.5 ${isWeekendNow() ? 'grid-cols-5' : 'grid-cols-4'}`}>
+          <div className={`grid gap-1.5 grid-cols-2 sm:grid-cols-3 ${quickActionCols}`}>
             {allActionButtons.filter(action => !(action as any).weekendOnly || isWeekendNow()).map((action, index) => {
               const isHiddenWeekend = false;
               return (
