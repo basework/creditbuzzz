@@ -27,6 +27,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import referIcon from "@/assets/refer-icon.png";
 import creditbuzzLogo from "@/assets/creditbuzz-logo.jpg";
 import carousel3 from "@/assets/carousel-3.jpeg";
 import carousel4 from "@/assets/carousel-4.jpeg";
@@ -40,6 +41,7 @@ const carouselImages = [creditbuzzLogo, carousel3, carousel4];
 
 const allActionButtons = [
   { icon: null, customIcon: supportIcon, label: "Support", color: "from-violet to-teal", route: "https://t.me/creditbuzzadmin", animation: "pulse" as const, external: true },
+  { icon: null, customIcon: referIcon, label: "Tap & Earn", color: "from-magenta to-gold", route: "/referral", animation: "glow" as const },
   { icon: null, customIcon: historyIcon, label: "Tasks", color: "from-gold to-magenta", route: "tasks", animation: "bounce" as const },
   { icon: null, customIcon: communityIcon, label: "Community", color: "from-teal to-violet", route: "/community", animation: "float" as const },
   { icon: null, customIcon: zfcIcon, label: "Buy CBC", color: "from-gold to-magenta", route: "/buy-zfc", animation: "glow" as const },
