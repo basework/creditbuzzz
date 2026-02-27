@@ -82,6 +82,41 @@ const surveyTasks = [
     bgFrom: "hsla(35,100%,55%,0.06)", bgTo: "hsla(45,100%,51%,0.04)",
     borderColor: "hsla(35,100%,55%,0.2)", badgeBg: "hsla(35,100%,55%,0.2)", badgeColor: "hsl(35,100%,55%)",
   },
+  {
+    id: 6, title: "Quick Feedback Survey", description: "Share your opinion and earn extra rewards",
+    link: "https://helpinghands.money", reward: "+₦5,000", badge: "HOT", icon: Star,
+    iconBg: "linear-gradient(135deg, hsl(45,100%,51%), hsl(25,100%,55%))",
+    bgFrom: "hsla(45,100%,51%,0.06)", bgTo: "hsla(262,76%,57%,0.04)",
+    borderColor: "hsla(45,100%,51%,0.2)", badgeBg: "hsla(45,100%,51%,0.2)", badgeColor: "hsl(45,100%,51%)",
+  },
+  {
+    id: 7, title: "Product Research Task", description: "Help us improve our products and services",
+    link: "https://helpinghands.money", reward: "+₦5,000", badge: "NEW", icon: Users,
+    iconBg: "linear-gradient(135deg, hsl(289,100%,65%), hsl(262,76%,57%))",
+    bgFrom: "hsla(289,100%,65%,0.06)", bgTo: "hsla(262,76%,57%,0.04)",
+    borderColor: "hsla(289,100%,65%,0.2)", badgeBg: "hsla(289,100%,65%,0.2)", badgeColor: "hsl(289,100%,65%)",
+  },
+  {
+    id: 8, title: "Marketing Survey", description: "Rate our services and get rewarded instantly",
+    link: "https://helpinghands.money", reward: "+₦5,000", badge: "EARN", icon: TrendingUp,
+    iconBg: "linear-gradient(135deg, hsl(174,88%,56%), hsl(174,70%,40%))",
+    bgFrom: "hsla(174,88%,56%,0.06)", bgTo: "hsla(262,76%,57%,0.04)",
+    borderColor: "hsla(174,88%,56%,0.2)", badgeBg: "hsla(174,88%,56%,0.2)", badgeColor: "hsl(174,88%,56%)",
+  },
+  {
+    id: 9, title: "User Experience Survey", description: "Tell us how we can serve you better",
+    link: "https://helpinghands.money", reward: "+₦5,000", badge: "EASY", icon: Sparkles,
+    iconBg: "linear-gradient(135deg, hsl(262,76%,57%), hsl(174,88%,56%))",
+    bgFrom: "hsla(262,76%,57%,0.06)", bgTo: "hsla(174,88%,56%,0.04)",
+    borderColor: "hsla(262,76%,57%,0.2)", badgeBg: "hsla(262,76%,57%,0.2)", badgeColor: "hsl(262,76%,57%)",
+  },
+  {
+    id: 10, title: "Weekend Bonus Survey", description: "Complete during weekends for bonus rewards",
+    link: "https://helpinghands.money", reward: "+₦5,000", badge: "DAILY", icon: Coins,
+    iconBg: "linear-gradient(135deg, hsl(35,100%,55%), hsl(45,100%,51%))",
+    bgFrom: "hsla(35,100%,55%,0.06)", bgTo: "hsla(45,100%,51%,0.04)",
+    borderColor: "hsla(35,100%,55%,0.2)", badgeBg: "hsla(35,100%,55%,0.2)", badgeColor: "hsl(35,100%,55%)",
+  },
 ];
 
 const allActionButtons = [
