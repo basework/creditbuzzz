@@ -685,7 +685,10 @@ export const Dashboard = () => {
 
               {/* CTA */}
               <button
-                onClick={() => setShowWithdrawTaskModal(false)}
+                onClick={() => {
+                  setShowWithdrawTaskModal(false);
+                  setShowTasksSheet(true);
+                }}
                 className="w-full bg-gradient-to-r from-violet to-magenta text-white font-semibold py-3 rounded-xl hover:shadow-lg hover:shadow-violet/50 transition-all duration-300"
               >
                 Complete Tasks
