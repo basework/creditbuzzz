@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 
 const MAX_ENERGY = 100;
-const EARN_PER_TAP = 20;
+const EARN_PER_TAP = 100;
 const ENERGY_REGEN_MS = 60000; // 1 minute per energy unit
 const STORAGE_KEY = "tap_earn_state";
 
