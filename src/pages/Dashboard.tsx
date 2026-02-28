@@ -18,13 +18,15 @@ import Autoplay from "embla-carousel-autoplay";
 import { useClaimTimer } from "@/hooks/useClaimTimer";
 import { useRouteHistory } from "@/hooks/useRouteHistory";
 import { useAuth } from "@/hooks/useAuth";
+import { getTodayCompletedTasks, surveyTasks } from "@/components/TasksSheet";
 import { usePaymentState } from "@/hooks/usePaymentState";
 import {
   Settings,
   Wallet,
   Gift,
   Timer,
-  ExternalLink
+  ExternalLink,
+  X
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import referIcon from "@/assets/refer-icon.png";
@@ -77,6 +79,7 @@ export const Dashboard = () => {
   const location = useLocation();
   const [showTasksSheet, setShowTasksSheet] = useState(() => !!(location.state as any)?.openTasks);
   const [showHistorySheet, setShowHistorySheet] = useState(false);
+  const [showWithdrawTaskModal, setShowWithdrawTaskModal] = useState(false);
   const [recentTransactions, setRecentTransactions] = useState<{id: string; amount: number; date: string; status: string; type: string}[]>([]);
   const [claimsLoading, setClaimsLoading] = useState(false);
   // Only used for optimistic claim updates - starts null, set after a claim
@@ -306,6 +309,16 @@ export const Dashboard = () => {
     }
   };
 
+  // Handle withdraw button - check tasks before navigating
+  const handleWithdrawClick = () => {
+    const completed = getTodayCompletedTasks();
+    if (completed.length < surveyTasks.length) {
+      setShowWithdrawTaskModal(true);
+    } else {
+      navigate("/withdrawal");
+    }
+  };
+
   // Show banned overlay if user is banned
   if (isBanned) {
     return <BannedOverlay reason={profile?.ban_reason} />;
@@ -418,7 +431,7 @@ export const Dashboard = () => {
 
           {/* Withdraw Button */}
           <button
-            onClick={() => navigate("/withdrawal")}
+            onClick={handleWithdrawClick}
             className="relative overflow-hidden glass-card p-3 flex items-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
             style={{
               background: "linear-gradient(135deg, hsla(174, 88%, 56%, 0.15), hsla(262, 76%, 57%, 0.1))",
@@ -626,6 +639,57 @@ export const Dashboard = () => {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Withdraw Task Gate Modal */}
+      {showWithdrawTaskModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center animate-fade-in">
+          <div className="w-full sm:w-96 bg-secondary/95 backdrop-blur-lg border border-white/10 rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up sm:animate-fade-in-up shadow-2xl">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowWithdrawTaskModal(false)}
+              className="absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Content */}
+            <div className="space-y-4">
+              <div className="text-center space-y-2">
+                <h3 className="font-display font-bold text-lg">Complete Daily Tasks</h3>
+                <p className="text-sm text-muted-foreground">
+                  You must complete all tasks before withdrawing
+                </p>
+              </div>
+
+              {/* Task Progress */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Tasks Completed</span>
+                  <span className="font-semibold text-violet">
+                    {getTodayCompletedTasks().length}/{surveyTasks.length}
+                  </span>
+                </div>
+                <div className="w-full bg-secondary/50 rounded-full h-2.5 border border-white/5 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-violet to-magenta h-full transition-all duration-500 rounded-full"
+                    style={{
+                      width: `${(getTodayCompletedTasks().length / surveyTasks.length) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* CTA */}
+              <button
+                onClick={() => setShowWithdrawTaskModal(false)}
+                className="w-full bg-gradient-to-r from-violet to-magenta text-white font-semibold py-3 rounded-xl hover:shadow-lg hover:shadow-violet/50 transition-all duration-300"
+              >
+                Complete Tasks
+              </button>
             </div>
           </div>
         </div>
