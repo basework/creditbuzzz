@@ -34,7 +34,6 @@ import creditbuzzLogo from "@/assets/creditbuzz-logo.jpg";
 import carousel3 from "@/assets/carousel-3.jpeg";
 import carousel4 from "@/assets/carousel-4.jpeg";
 import zfcIcon from "@/assets/cbc-icon.png";
-import supportIcon from "@/assets/support-icon.png";
 import historyIcon from "@/assets/history-icon.png";
 import communityIcon from "@/assets/community-icon.png";
 
@@ -42,7 +41,6 @@ const carouselImages = [creditbuzzLogo, carousel3, carousel4];
 
 
 const allActionButtons = [
-  { icon: null, customIcon: supportIcon, label: "Support", color: "from-violet to-teal", route: "https://t.me/creditbuzzadmin", animation: "pulse" as const, external: true },
   { icon: null, customIcon: referIcon, label: "Tap & Earn", color: "from-magenta to-gold", route: "/referral", animation: "glow" as const },
   { icon: null, customIcon: historyIcon, label: "Tasks", color: "from-gold to-magenta", route: "tasks", animation: "bounce" as const },
   { icon: null, customIcon: communityIcon, label: "Community", color: "from-teal to-violet", route: "/community", animation: "float" as const },
