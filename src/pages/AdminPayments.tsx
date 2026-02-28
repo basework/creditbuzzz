@@ -42,6 +42,7 @@ export const AdminPayments = () => {
   const { user, isLoading: authLoading } = useAuth();
   const { isAdmin, isLoading: roleLoading } = useUserRole();
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -63,6 +64,8 @@ export const AdminPayments = () => {
         return;
       }
       fetchPayments();
+      // also fetch any pending withdrawals for admin review
+      fetchWithdrawals();
     }
   }, [user, isAdmin, authLoading, roleLoading, navigate]);
 
@@ -118,6 +121,27 @@ export const AdminPayments = () => {
     };
   }, [isAdmin, authLoading, roleLoading]);
 
+  // Realtime subscription for withdrawals
+  useEffect(() => {
+    if (!isAdmin || authLoading || roleLoading) return;
+
+    const chName = `admin-withdrawals-realtime-${Date.now()}`;
+    const ch = supabase
+      .channel(chName)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "withdrawals" },
+        (payload) => {
+          console.log("Withdrawal change:", payload);
+          // refetch list simply for simplicity
+          fetchWithdrawals();
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(ch);
+  }, [isAdmin, authLoading, roleLoading]);
+
   const fetchPayments = async () => {
     const { data, error } = await supabase
       .from("payments")
@@ -135,6 +159,63 @@ export const AdminPayments = () => {
       setPayments(data || []);
     }
     setIsLoading(false);
+  };
+
+  const handleWithdrawalUpdate = async (withdrawalId: string, newStatus: "completed" | "failed") => {
+    setProcessingId(withdrawalId);
+    try {
+      const withdrawal = withdrawals.find((w) => w.id === withdrawalId);
+      if (!withdrawal) throw new Error("Withdrawal not found");
+
+      if (newStatus === "completed") {
+        // Deduct user's balance
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("balance")
+          .eq("user_id", withdrawal.user_id)
+          .single();
+
+        if (profileError) throw profileError;
+
+        const newBalance = Number(profile?.balance || 0) - Number(withdrawal.amount || 0);
+
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({ balance: newBalance })
+          .eq("user_id", withdrawal.user_id);
+
+        if (updateError) throw updateError;
+      }
+
+      const { error } = await supabase
+        .from("withdrawals")
+        .update({ status: newStatus })
+        .eq("id", withdrawalId);
+
+      if (error) throw error;
+
+      setWithdrawals((prev) => prev.map((w) => (w.id === withdrawalId ? { ...w, status: newStatus } : w)));
+      toast({ title: "Success", description: `Withdrawal ${newStatus}` });
+    } catch (error: any) {
+      console.error("Error updating withdrawal:", error);
+      toast({ title: "Error", description: error.message || "Failed to update withdrawal", variant: "destructive" });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const fetchWithdrawals = async () => {
+    const { data, error } = await supabase
+      .from("withdrawals")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching withdrawals:", error);
+      toast({ title: "Error", description: "Failed to fetch withdrawals", variant: "destructive" });
+    } else {
+      setWithdrawals(data || []);
+    }
   };
 
   const handleStatusUpdate = async (paymentId: string, newStatus: "approved" | "rejected") => {
@@ -405,6 +486,55 @@ export const AdminPayments = () => {
             })}
           </div>
         )}
+
+        {/* Withdrawals Section */}
+        <div className="mt-8">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-foreground">Withdrawal Activations</h2>
+            <p className="text-sm text-muted-foreground">{withdrawals.length} request{withdrawals.length !== 1 ? 's' : ''}</p>
+          </div>
+
+          {withdrawals.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Shield className="w-12 h-12 text-muted-foreground/50 mb-3" />
+              <p className="text-sm text-muted-foreground">No withdrawal activation payments yet</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {withdrawals.map((w, i) => (
+                <motion.div key={w.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }} className="p-4 rounded-xl bg-secondary/30 border border-border/40">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-lg font-bold text-foreground">{formatCurrency(Number(w.amount))}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(w.created_at)}</p>
+                    </div>
+                    <div className="text-sm text-muted-foreground text-right">
+                      <p className="font-medium">{w.account_name}</p>
+                      <p className="text-xs">{w.account_number} • {w.bank_name}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">User: {w.user_id}</div>
+                    <div className="flex gap-3">
+                      {w.status !== 'completed' && (
+                        <>
+                          <button onClick={() => handleWithdrawalUpdate(w.id, 'completed')} disabled={processingId === w.id} className="py-2 px-4 bg-teal/20 text-teal font-semibold rounded-xl">
+                            Approve
+                          </button>
+                          <button onClick={() => handleWithdrawalUpdate(w.id, 'failed')} disabled={processingId === w.id} className="py-2 px-4 bg-red-400/20 text-red-400 font-semibold rounded-xl">
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {w.status === 'completed' && <span className="text-teal font-semibold">Completed</span>}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Receipt Modal */}

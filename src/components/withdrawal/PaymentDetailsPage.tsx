@@ -4,6 +4,8 @@ import { Copy, Check, CreditCard, Shield, ArrowRight, Building2, Hash, Banknote,
 import { FloatingParticles } from "@/components/ui/FloatingParticles";
 import { ZenfiLogo } from "@/components/ui/ZenfiLogo";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useWithdrawalFlow } from "@/hooks/useWithdrawalFlow";
 
 interface PaymentDetailsPageProps {
   onPaymentMade: () => void;
@@ -19,6 +21,7 @@ const PAYMENT_DETAILS = {
 export const PaymentDetailsPage = ({ onPaymentMade }: PaymentDetailsPageProps) => {
   const [copiedAccount, setCopiedAccount] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { flowState } = useWithdrawalFlow();
 
   const handleCopyAccount = async () => {
     await navigator.clipboard.writeText(PAYMENT_DETAILS.accountNumber);
@@ -31,10 +34,31 @@ export const PaymentDetailsPage = ({ onPaymentMade }: PaymentDetailsPageProps) =
   };
 
   const handlePaymentMade = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      onPaymentMade();
-    }, 300);
+    (async () => {
+      setIsSubmitting(true);
+      try {
+        // Try to attach this payment to the active withdrawal if present
+        const withdrawalId = flowState?.withdrawalId;
+
+        // If we have a withdrawal id, update its status so admins can review
+        if (withdrawalId) {
+          const { error: updErr } = await supabase
+            .from("withdrawals")
+            .update({ status: "payment_pending" })
+            .eq("id", withdrawalId);
+
+          if (updErr) {
+            console.error("Failed to mark withdrawal payment pending:", updErr);
+            toast({ title: "Error", description: "Failed to notify admin about payment.", variant: "destructive" });
+          }
+        }
+
+        // Notify the parent flow that payment was made
+        onPaymentMade();
+      } finally {
+        setIsSubmitting(false);
+      }
+    })();
   };
 
   const formatCurrency = (value: number) => {
